@@ -1,0 +1,278 @@
+<html lang="en">
+<head>
+
+  
+  <meta charset="utf-8">
+  <title>用嵌入字段实现代码重用</title>
+  <meta name="description" content="用嵌入字段实现代码重用">
+  <meta name="author" content="">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="http://reusee.github.iocss/fonts.css">
+  
+  
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  
+
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
+
+  <link rel="stylesheet" href="http://reusee.github.iocss/custom.css">
+
+  
+  
+  <link rel="stylesheet" href="http://reusee.github.iohighlight/styles/default.css">
+  
+  <script src="http://reusee.github.iohighlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body>
+
+
+<div class="header pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+    <div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="desktop pure-menu pure-menu-horizontal nav-menu">
+            
+            <a href="/" class="site-title pure-menu-heading">声zzz</a>
+            <ul class="pure-menu-list">
+                
+                <li class="pure-menu-item">
+                    <a href="http://reusee.github.ioabout/" class="pure-menu-link">About</a>
+                </li>
+            </ul>
+        </div>
+        <div class="mobile pure-menu nav-menu">
+            <a href="/" class="pure-menu-heading" id="toggle-home">声zzz</a>
+            <a href="#" id="toggle-btn">&#9776;</a>
+            <ul class="pure-menu-list" id="toggle-content" style="display:none;">
+                
+                
+                <li class="pure-menu-item">
+                    <a href="http://reusee.github.ioabout" class="pure-menu-link">About</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+
+<div class="pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+	<div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="post">
+
+            <div class="post-title">
+                <p class="footnote">
+                    <time class="">2014-08-28</time>
+		            
+                    
+                    
+
+                    
+
+                    
+                </p>
+                <h1>用嵌入字段实现代码重用</h1>
+            </div>
+
+            <div class="post-content">
+                <p>对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。</p>
+
+<pre><code class="language-go">
+type Foo struct {
+  sync.Mutex
+  // ... other fields
+}
+
+f := new(Foo)
+f.Lock()
+// ... operations
+f.Unlock()
+</code></pre>
+
+<p>Foo嵌入了sync.Mutex，所以可以在Foo结构上直接调用Lock和Unlock方法。
+但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。
+Foo结构可以用于任何需要sync.Locker的地方，例如</p>
+
+<pre><code class="language-go">
+condition := sync.NewCond(new(Foo))
+</code></pre>
+
+<p>这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型，
+而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。</p>
+
+<p>当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。
+例如这个接口</p>
+
+<pre><code class="language-go">
+type Named interface {
+    PrintName()
+}
+</code></pre>
+
+<p>要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一</p>
+
+<pre><code class="language-go">
+type Named interface {
+    PrintName()
+    GetName() string
+}
+
+type NamedImpl struct {
+    named Named
+}
+
+func (n NamedImpl) PrintName() {
+    fmt.Printf("name is %s\n", n.named.GetName())
+}
+
+type Foo struct {
+    NamedImpl
+    Name string
+}
+
+func (f Foo) GetName() string {
+    return f.Name
+}
+
+func main() {
+    var f Foo
+    f.Name = "foo"
+    f.NamedImpl = NamedImpl{f}
+    f.PrintName()
+}
+</code></pre>
+
+<p>给Named接口增加一个GetName方法。虽然感觉有点多余但也算可行。</p>
+
+<p>其二，不增加接口方法，只传需要的数据的引用</p>
+
+<pre><code class="language-go">
+type Named interface {
+    PrintName()
+}
+
+type NamedImpl struct {
+    name *string
+}
+
+func (n NamedImpl) PrintName() {
+    fmt.Printf("name is %s\n", *n.name)
+}
+
+type Foo struct {
+    NamedImpl
+    Name string
+}
+
+func main() {
+  var f Foo
+  f.Name = "foo"
+  f.NamedImpl = NamedImpl{&f.Name}
+  f.PrintName()
+}
+</code></pre>
+
+<p>其三，不使用引用，而是嵌入一个closure以获得所需数据</p>
+
+<pre><code class="language-go">
+type Named interface {
+    PrintName()
+}
+
+type NamedImpl func() string
+
+func (n NamedImpl) PrintName() {
+    fmt.Printf("name is %s\n", n())
+}
+
+type Foo struct {
+    NamedImpl
+    Name string
+}
+
+func main() {
+    var f Foo
+    f.Name = "foo"
+    f.NamedImpl = func() string { return f.Name }
+    f.PrintName()
+}
+</code></pre>
+
+<p>以上例子中，其他类型要实现Named接口，可以不实现PrintName方法，而是嵌入一个NamedImpl。</p>
+
+<pre><code class="language-go">
+func main() {
+    b := struct {
+        NamedImpl
+        name string
+    }{}
+    b.name = "bar"
+    b.NamedImpl = func() string { return b.name }
+    b.PrintName()
+}
+</code></pre>
+
+<p>这就实现了代码的重用。</p>
+
+            </div>
+        </div>
+	</div>
+    <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+<div class="footer pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+    <div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="pure-menu pure-menu-horizontal footer-content">
+            <ul>
+                <li class="pure-menu-heading" id="foot-name">:</li>
+
+                
+
+                
+
+                
+
+                
+
+                
+
+            </ul>
+            <a href="#" class="pure-menu-heading pull-right" id="gototop-btn">↑↑</a>
+        </div>
+	  </div>
+      <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+
+<script src="http://reusee.github.iojs/jquery.min.js" type="text/javascript"></script>
+<script src="http://reusee.github.iojs/jquery.timeago.js" type="text/javascript"></script>
+<script type="text/javascript">
+  $(function(){
+    $("time.timeago").timeago();
+  })
+  $("#toggle-btn").click(function(){
+    $("#toggle-content").toggle();
+    if($(this).html() === "☰") {
+        $(this).html("X")
+    } else {
+        $(this).html("☰")
+    }
+  });
+  $(window).resize(function(){
+    if(window.innerWidth > 768) {
+      $(".desktop").removeAttr("style");
+    }
+  });
+</script>
+
+</body>
+</html>
+

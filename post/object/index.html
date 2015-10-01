@@ -1,0 +1,265 @@
+<html lang="en">
+<head>
+
+  
+  <meta charset="utf-8">
+  <title>一种对象结构</title>
+  <meta name="description" content="一种对象结构">
+  <meta name="author" content="">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="http://reusee.github.iocss/fonts.css">
+  
+  
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  
+
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
+
+  <link rel="stylesheet" href="http://reusee.github.iocss/custom.css">
+
+  
+  
+  <link rel="stylesheet" href="http://reusee.github.iohighlight/styles/default.css">
+  
+  <script src="http://reusee.github.iohighlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</head>
+<body>
+
+
+<div class="header pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+    <div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="desktop pure-menu pure-menu-horizontal nav-menu">
+            
+            <a href="/" class="site-title pure-menu-heading">声zzz</a>
+            <ul class="pure-menu-list">
+                
+                <li class="pure-menu-item">
+                    <a href="http://reusee.github.ioabout/" class="pure-menu-link">About</a>
+                </li>
+            </ul>
+        </div>
+        <div class="mobile pure-menu nav-menu">
+            <a href="/" class="pure-menu-heading" id="toggle-home">声zzz</a>
+            <a href="#" id="toggle-btn">&#9776;</a>
+            <ul class="pure-menu-list" id="toggle-content" style="display:none;">
+                
+                
+                <li class="pure-menu-item">
+                    <a href="http://reusee.github.ioabout" class="pure-menu-link">About</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+
+<div class="pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+	<div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="post">
+
+            <div class="post-title">
+                <p class="footnote">
+                    <time class="">2014-05-12</time>
+		            
+                    
+                    
+
+                    
+
+                    
+                </p>
+                <h1>一种对象结构</h1>
+            </div>
+
+            <div class="post-content">
+                
+
+<p><a href="https://github.com/reusee/object" target="_blank"><a href="https://github.com/reusee/object">https://github.com/reusee/object</a></a></p>
+
+<p>这是开发<a href="https://github.com/reusee/gotunnel-ng" target="_blank">gotunnel-ng</a>时使用过的一种结构。
+觉得比较通用，例如可以用在多线程gui库里，所以重新实现了下。简单介绍之。</p>
+
+<h3 id="0-基本结构:64f69964068e81337a920d35b6c5158f">0) 基本结构</h3>
+
+<p>基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下</p>
+
+<pre><code class="language-golang">
+type Object struct {
+    call    func(*Call)
+    signals map[string][]interface{}
+}
+
+type Call struct {
+    object   *Object
+    what     int
+    signal   string
+    fun      interface{}
+    doneCond *sync.Cond
+    done     bool
+    arg      []interface{}
+    ret      interface{}
+}
+</code></pre>
+
+<h3 id="1-线程安全的状态读写:64f69964068e81337a920d35b6c5158f">1) 线程安全的状态读写</h3>
+
+<p>Object的Call方法接受一个func()类型的参数，这个closure会被包装成Call结构，并送入Object的calls管道内。<br />
+Object的主循环会读到这个Call，并在循环内执行此closure。<br />
+所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。<br />
+并发计数器的例子</p>
+
+<pre><code class="language-golang">
+obj := &struct {
+    *Object
+    i int
+}{
+    Object: New(),
+}
+
+n := 512
+wg := new(sync.WaitGroup)
+wg.Add(n)
+for i := 0; i < n; i++ {
+    go func() {
+        obj.Call(func() {
+            obj.i++
+        }).Wait()
+        wg.Done()
+    }()
+}
+wg.Wait()
+</code></pre>
+
+<p>在多线程环境下，<code>obj.i++</code>操作是不安全的。但Call方法能保证所有传入的closure在单一goroutine内顺序执行。所以上面的计数器能保证结果是512。</p>
+
+<p>同样的效果，用锁也能实现，但Lock操作是阻塞的，实现不了下述的机制。</p>
+
+<h3 id="2-异步调用和future:64f69964068e81337a920d35b6c5158f">2) 异步调用和future</h3>
+
+<p>Object的Call方法是异步的，也就是传入的closure不会立即执行，Call方法在将Call结构送入calls成员后返回。<br />
+Call方法返回送出的Call结构，Call结构有一个Wait方法。
+调用该方法后，在closure执行完成之前会一直阻塞，也就是，Wait方法返回后，closure一定已经执行完成了。<br />
+Call结构还有个Get方法，可以获得closure的返回值（不支持多值）。Get方法会调用Wait方法。所以一个Call可以作为future使用</p>
+
+<pre><code class="language-golang">
+// obj如上创建
+call := obj.Call(func() interface{} {
+    obj.i = 8
+    return obj.i
+})
+fmt.Printf("%d\n", call.Get().(int))
+</code></pre>
+
+<p>返回值使用interface{}类型，是为了避免使用reflect。性能差异太大，所以作此取舍。</p>
+
+<h3 id="3-signal-slot机制:64f69964068e81337a920d35b6c5158f">3) Signal/Slot机制</h3>
+
+<p>Object用Connect和Emit方法实现Signal/Slot机制。这是和GObject、Qt之类类似的。<br />
+Emit可以带一个任意类型的参数。之前的实现使用了reflect，支持任意个，但reflect对性能影响不小，于是作此限定。<br />
+Emit在Slot执行之前就返回，如果要等待Slot执行可以调用Emit返回的Call的Wait方法。<br />
+同理，Connect支持的closure也是两种，不带参数的和带参数的，类型都是interface{}，需要type assertion后使用。<br />
+closure返回一个bool值，为false时，closure只会执行一次。<br />
+例子</p>
+
+<pre><code class="language-golang">
+// obj如上创建
+obj.i = 5
+obj.Connect("sig", func(i interface{}) bool {
+    obj.i += i.(int)
+    return true
+})
+obj.Connect("sig", func(i interface{}) bool {
+    obj.i += i.(int) * 2
+    return false // one-shot signal
+})
+obj.Emit("sig", 5).Wait()
+fmt.Printf("%d\n", obj.i)
+</code></pre>
+
+<p>输出为20</p>
+
+<h3 id="4-执行驱动:64f69964068e81337a920d35b6c5158f">4) 执行驱动</h3>
+
+<p>Object的各种方法调用，都是靠goroutine来驱动。
+一个goroutine对应一个Object，这是默认的驱动的做法。
+除此之外还有一个goroutine对应n个Object的n:1驱动，和多个goroutine对应所有Object的n:m驱动。</p>
+
+<p>因为一个goroutine的内存开销至少是2k，所以对象多时对内存和调度器都会产生压力。
+n:1和n:m驱动就是用于降低goroutine带来的开销的。但因为goroutine数量少于Object数量，所以调用多时可能对性能产生影响。
+总之就是时间换空间。</p>
+
+<p>1:1驱动的性能最好，n:m次之，n:1再次之。但n:1的内存占用最小，n:m多一些，1:1最多。</p>
+
+<p>64bit机器上，1G内存，1:1驱动可以跑12万个Object，n:m驱动在n为2048时能跑200万左右，n:1驱动在n为128时能跑320万左右。对象多时，goroutine的内存占比不高，n的影响不大。</p>
+
+<h3 id="5-调用性能:64f69964068e81337a920d35b6c5158f">5) 调用性能</h3>
+
+<p>一次Call调用，需要创建Call结构，进出calls管道，执行closure，改变完成状态和广播，开销不小。
+在我机器上空closure的Benchmark的结果是，Call并Wait是840 ns/op左右，Call不Wait是560 ns/op左右。
+Emit调用的性能也在同一个数量级。</p>
+
+            </div>
+        </div>
+	</div>
+    <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+<div class="footer pure-g">
+    <div class="pure-u-1-24 pure-u-md-5-24"></div>
+    <div class="pure-u-11-12 pure-u-md-5-8">
+        <div class="pure-menu pure-menu-horizontal footer-content">
+            <ul>
+                <li class="pure-menu-heading" id="foot-name">:</li>
+
+                
+
+                
+
+                
+
+                
+
+                
+
+            </ul>
+            <a href="#" class="pure-menu-heading pull-right" id="gototop-btn">↑↑</a>
+        </div>
+	  </div>
+      <div class="pure-u-1-24 pure-u-md-1-6"></div>
+</div>
+
+
+<script src="http://reusee.github.iojs/jquery.min.js" type="text/javascript"></script>
+<script src="http://reusee.github.iojs/jquery.timeago.js" type="text/javascript"></script>
+<script type="text/javascript">
+  $(function(){
+    $("time.timeago").timeago();
+  })
+  $("#toggle-btn").click(function(){
+    $("#toggle-content").toggle();
+    if($(this).html() === "☰") {
+        $(this).html("X")
+    } else {
+        $(this).html("☰")
+    }
+  });
+  $(window).resize(function(){
+    if(window.innerWidth > 768) {
+      $(".desktop").removeAttr("style");
+    }
+  });
+</script>
+
+</body>
+</html>
+
