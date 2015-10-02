@@ -151,7 +151,7 @@ foobar: baz
 我会用在经常变的应用代码，或者百几十行的小程序里。
 基础的包，还是好好写 if err != nil { &amp;hellip; } 吧。&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://github.com/reusee/codes/blob/master/err/err.go&#34;&gt;https://github.com/reusee/codes/blob/master/err/err.go&lt;/a&gt; 里的函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
+&lt;p&gt;以上ct、me、ce等函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
 用的代码生成工具是 &lt;a href=&#34;https://github.com/reusee/ccg&#34;&gt;https://github.com/reusee/ccg&lt;/a&gt; ，可能会有另外一篇博文说说这个。&lt;/p&gt;
 </description>
     </item>
