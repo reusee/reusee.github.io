@@ -38,10 +38,10 @@
             <article class="post">
     <header class="post-summary-header">
       <p class="post-title"><a href="http://reusee.github.io/post/error-handling/">go处理错误的另一种方式 </a></p>
-      <p class="post-meta">Oct 1 2015 - 7 min </p>
+      <p class="post-meta">Oct 1 2015 - 2 min </p>
     </header>
 
-    go处理错误常见的方式是 err := funcReturningError() if err != nil { // 处理错误 } 然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。 这种写法最初我是从标准库里看到
+    go处理错误常见的方式是 err := funcReturningError() if err != nil { // 处理错误 } 然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。 这种写法最初我是从标准库里看到的，代码在 https://github.com/golang/go/blob/master/src/encoding/gob/error.go。 简言之，就是将错误用panic抛出，然后在某个边界用defer将其转为error值。这和其他用抛异常来处理错误的语言类似。 不过上述代码并不十分通用，也没有解决最开始提出的写法繁琐的问题。 受其启发，我现在用得最多的错误处理方式是这样的 https://github.com/reusee/codes/blob/master/err/err.go。 首先是Err结构体，定义如下 type Err struct { Pkg, Info string Err error } Pkg用于标识抛出错误的包，Info是对错误的描述。Err用于包装另一个错误，一般是当前函数所调用的函数返回的，可以实现类似java的chained exception的机制，后面再细说。 另外有一个me函数（make error），用于包装error，实现很简单不提。 然后是ce函数（check error） func ce(err error, info string) { if err != nil { panic(me(err, info)) } } 这个函数检查err参数是否为nil，如果不是，则包装出一个Err结构，然后用panic抛出。 这个就是用于替代if err != nil { &hellip; }的了。 错误用panic抛出后，必须在某个边界recover，API不应该对外暴露panic，否则会和go社区整体的理念不合，自找烦恼。 负责这个的是ct函数（catch error） func ct(err *error) { if p := recover(); p != nil { if e, ok := p.(error); ok { *err = e } else { panic(p) } } } 因为用到了recover，所以ct只能在defer函数里调用。它首先recover()，然后看是否是error，是则将其赋值到传入的*error处，否则重新panic抛出 来看看它是如何减少代码的，以 https://blog.golang.org/errors-are-values 的一段代码为例 _, err = fd.Write(p0[a:b]) if err != nil { return err } _, err = fd.Write(p1[c:d]) if err != nil { return err } _, err = fd.Write(p2[e:f]) if err != nil { return err } 用上述机制，可以写成 defer ct(&err) _, err = fd.Write(p0[a:b]) ce(err, "write p0") _, err = fd.Write(p1[c:d]) ce(err, "write p1") _, err = fd.Write(p2[e:f]) ce(err, "write p2") 代码没有那样繁琐了。 另外还有一个好处是，因为Err包装了上一个错误，所以定位错误比较容易。例如下面程序 package main func foo() (err error) { defer ct(&err) ce(bar(), "call bar") return } func bar() (err error) { defer ct(&err) ce(baz(), "call baz") return } func baz() (err error) { return me(nil, "baz") } func main() { if err := foo(); err != nil { panic(err) } } paniclog是这样的 panic: foobar: call bar foobar: call baz foobar: baz ...
     <footer>
         <a href='http://reusee.github.io/post/error-handling/'><nobr>more →</nobr></a>
     </footer>
@@ -64,10 +64,10 @@
             <article class="post">
     <header class="post-summary-header">
       <p class="post-title"><a href="http://reusee.github.io/post/embedded/">用嵌入字段实现代码重用 </a></p>
-      <p class="post-meta">Aug 28 2014 - 4 min </p>
+      <p class="post-meta">Aug 28 2014 - 2 min </p>
     </header>
 
-    对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。 type Foo struct { sync.Mutex // ... other fields } f := new(Foo) f.Lock() // ... operations f.Unlock() Foo嵌入了sy
+    对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。 type Foo struct { sync.Mutex // ... other fields } f := new(Foo) f.Lock() // ... operations f.Unlock() Foo嵌入了sync.Mutex，所以可以在Foo结构上直接调用Lock和Unlock方法。 但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。 Foo结构可以用于任何需要sync.Locker的地方，例如 condition := sync.NewCond(new(Foo)) 这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型， 而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。 当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。 例如这个接口 type Named interface { PrintName() } 要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一 type Named interface { PrintName() GetName() string } type NamedImpl struct { named Named } func (n NamedImpl) PrintName() { fmt.Printf("name is %s\n", n.named.GetName()) } type Foo struct { NamedImpl Name string }
     <footer>
         <a href='http://reusee.github.io/post/embedded/'><nobr>more →</nobr></a>
     </footer>
@@ -77,10 +77,10 @@
             <article class="post">
     <header class="post-summary-header">
       <p class="post-title"><a href="http://reusee.github.io/post/object/">一种对象结构 </a></p>
-      <p class="post-meta">May 12 2014 - 8 min </p>
+      <p class="post-meta">May 12 2014 - 1 min </p>
     </header>
 
-    https://github.com/reusee/object 这是开发gotunnel-ng时使用过的一种结构。 觉得比较通用，例如可以用在多线程gui库里，所以重新实现了下。简单介绍之。 0) 基本结构 基本
+    https://github.com/reusee/object 这是开发gotunnel-ng时使用过的一种结构。 觉得比较通用，例如可以用在多线程gui库里，所以重新实现了下。简单介绍之。 0) 基本结构 基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下 type Object struct { call func(*Call) signals map[string][]interface{} } type Call struct { object *Object what int signal string fun interface{} doneCond *sync.Cond done bool arg []interface{} ret interface{} } 1) 线程安全的状态读写 Object的Call方法接受一个func()类型的参数，这个closure会被包装成Call结构，并送入Object的calls管道内。 Object的主循环会读到这个Call，并在循环内执行此closure。 所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。 并发计数器的例子 obj := &struct { *Object i int }{ Object: New(), } n := 512 wg := new(sync.WaitGroup) wg.Add(n) for i := 0; i 在多线程环境下，obj.i++操作是不安全的。但Call方法能保证所有传入的closure在单一goroutine内顺序执行。所以上面的计数器能保证结果是512。 同样的效果，用锁也能实现，但Lock操作是阻塞的，实现不了下述的机制。 2) 异步调用和future Object的Call方法是异步的，也就是传入的closure不会立即执行，Call方法在将Call结构送入calls成员后返回。
     <footer>
         <a href='http://reusee.github.io/post/object/'><nobr>more →</nobr></a>
     </footer>

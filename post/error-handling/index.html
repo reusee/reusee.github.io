@@ -34,7 +34,7 @@
 <section id="main">
     <header class="post-header">
       <p class="post-title"><a href="http://reusee.github.io/post/error-handling/">go处理错误的另一种方式 </a></p>
-      <p class="post-meta">Oct 1 2015 - 7 min </p>
+      <p class="post-meta">Oct 1 2015 - 2 min </p>
     </header>
     <article itemprop="articleBody" id="content">
        <p>go处理错误常见的方式是</p>
@@ -170,7 +170,7 @@ foobar: baz
 另外因为没有 if 语句了，做覆盖测试的话，区分不出两种case了。
 所以这种写法并不适合所有场景。需要压榨性能时不用，需要做覆盖测试时不用。
 适合的场景是对性能要求不高的，对正确性要求也不高的。
-我会用在经常变的应用代码，或者百几十行的小程序里。
+我会用在经常变的应用代码，或者百几十行的小程序，或者测试代码里。
 基础的包，还是好好写 if err != nil { &hellip; } 吧。</p>
 
 <p>以上ct、me、ce等函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
