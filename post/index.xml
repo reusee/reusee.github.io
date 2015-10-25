@@ -26,8 +26,7 @@
 
 &lt;p&gt;先找到定义a变量的那一行，然后往上看：&lt;/p&gt;
 
-&lt;pre&gt;
-a.go:1272: reflect.t·2 escapes to heap
+&lt;pre&gt;&lt;code&gt;a.go:1272: reflect.t·2 escapes to heap
 a.go:1265: leaking param content: a
 a.go:1265: leaking param content: p
 a.go:1265: leaking param content: p
@@ -47,11 +46,10 @@ a.go:268: os.Stdout escapes to heap
 a.go:267: leaking param content: a
 a.go:17: b escapes to heap
 a.go:15: moved to heap: a
-&lt;/pre&gt;
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;从最下一句往上分析：
-&lt;pre&gt;
-a被移到堆上
+&lt;pre&gt;&lt;code&gt;a被移到堆上
 因为b逃逸到堆上
 Println的a参数（就是传入的b变量组成的[]interface{}）的内容泄漏
 这个泄漏不是指内存泄漏，而是指该传入参数的内容的生命期，超过函数调用期，也就是函数返回后，该参数的内容仍然存活
@@ -60,26 +58,21 @@ Fprintln的w、a参数都泄漏
 *pp.free的p参数（就是receiver）泄漏
 该receiver逃逸到heap
 ppFree逃逸到heap（这是个全局变量）
-&lt;/pre&gt;&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;
 
 &lt;p&gt;把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。&lt;/p&gt;
 
 &lt;p&gt;继续往上分析，然后居然发现这条：&lt;/p&gt;
 
-&lt;pre&gt;
-a.go:1272: reflect.t·2 escapes to heap
-&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;a.go:1272: reflect.t·2 escapes to heap&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;对应的代码是：&lt;/p&gt;
 
-&lt;pre&gt;
-            isString := arg != nil &amp;&amp; reflect.TypeOf(arg).Kind() == reflect.String
-&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;isString := arg != nil &amp;&amp; reflect.TypeOf(arg).Kind() == reflect.String&lt;/pre&gt;&lt;/code&gt;
 
-&lt;p&gt;reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：&lt;/p&gt;
+reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package main
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
 
 import &#34;reflect&#34;
 
@@ -91,17 +84,14 @@ func main() {
 
 &lt;p&gt;于是再去看reflect.Type.Kind()的代码，是这样的：&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-func (t *rtype) Kind() Kind { return Kind(t.kind &amp; kindMask) }
-&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func (t *rtype) Kind() Kind { return Kind(t.kind &amp; kindMask) }&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;于是问题变成，为什么reflect.TypeOf(arg).Kind()会导致arg逃逸。&lt;/p&gt;
 
 &lt;p&gt;按照前面的办法，复制reflect包的内容到文件里的话，会比较麻烦，因为有些函数是定义在runtime包里的。
 所以只要一些骨架，能重现就行：&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package main
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
 
 import (
     &#34;unsafe&#34;
@@ -146,25 +136,24 @@ func main() {
 
 &lt;p&gt;上面代码的go tool compile -m 结果是：&lt;/p&gt;
 
-&lt;pre&gt;
-a.go:20: can inline toType                                                                                          
-a.go:15: can inline TypeOf                                                                                          
-a.go:17: inlining call to toType                                                                                    
-a.go:31: can inline (*rtype).Kind                                                                                   
-a.go:40: inlining call to TypeOf                                                                                    
-a.go:40: inlining call to toType                                                                                    
-a.go:17: t escapes to heap                                                                                          
-a.go:15: leaking param: i to result ~r1 level=0                                                                     
-a.go:16: TypeOf &amp;i does not escape                                                                                  
-a.go:24: t escapes to heap                                                                                          
-a.go:20: leaking param: t to result ~r1 level=0                                                                     
-a.go:31: (*rtype).Kind t does not escape                                                                            
-a.go:40: t escapes to heap                                                                                          
-a.go:40: a escapes to heap                                                                                          
-a.go:39: &amp;struct {} literal escapes to heap                                                                         
-a.go:40: main &amp;i does not escape                                                                                    
-&lt;autogenerated&gt;:1: leaking param: .this             
-&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;a.go:20: can inline toType
+a.go:15: can inline TypeOf
+a.go:17: inlining call to toType
+a.go:31: can inline (*rtype).Kind
+a.go:40: inlining call to TypeOf
+a.go:40: inlining call to toType
+a.go:17: t escapes to heap
+a.go:15: leaking param: i to result ~r1 level=0
+a.go:16: TypeOf &amp;i does not escape
+a.go:24: t escapes to heap
+a.go:20: leaking param: t to result ~r1 level=0
+a.go:31: (*rtype).Kind t does not escape
+a.go:40: t escapes to heap
+a.go:40: a escapes to heap
+a.go:39: &amp;struct {} literal escapes to heap
+a.go:40: main &amp;i does not escape
+&lt;autogenerated&gt;:1: leaking param: .this
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;a在堆上分配了。&lt;/p&gt;
 
@@ -174,8 +163,7 @@ a.go:40: main &amp;i does not escape
 
 &lt;p&gt;同理，下面的程序：&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package main
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
 
 type T interface {
     Foo()
@@ -511,8 +499,7 @@ func main() {
 
 &lt;p&gt;基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;
-type Object struct {
+&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;type Object struct {
     call    func(*Call)
     signals map[string][]interface{}
 }
@@ -536,8 +523,7 @@ Object的主循环会读到这个Call，并在循环内执行此closure。&lt;br
 所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。&lt;br /&gt;
 并发计数器的例子&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;
-obj := &amp;struct {
+&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;obj := &amp;struct {
     *Object
     i int
 }{
@@ -569,8 +555,7 @@ Call方法返回送出的Call结构，Call结构有一个Wait方法。
 调用该方法后，在closure执行完成之前会一直阻塞，也就是，Wait方法返回后，closure一定已经执行完成了。&lt;br /&gt;
 Call结构还有个Get方法，可以获得closure的返回值（不支持多值）。Get方法会调用Wait方法。所以一个Call可以作为future使用&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;
-// obj如上创建
+&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;// obj如上创建
 call := obj.Call(func() interface{} {
     obj.i = 8
     return obj.i
@@ -589,8 +574,7 @@ Emit在Slot执行之前就返回，如果要等待Slot执行可以调用Emit返�
 closure返回一个bool值，为false时，closure只会执行一次。&lt;br /&gt;
 例子&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;
-// obj如上创建
+&lt;pre&gt;&lt;code class=&#34;language-golang&#34;&gt;// obj如上创建
 obj.i = 5
 obj.Connect(&#34;sig&#34;, func(i interface{}) bool {
     obj.i += i.(int)

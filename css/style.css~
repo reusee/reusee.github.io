@@ -1,0 +1,39 @@
+body {
+  font-size: 16px;
+}
+
+a {
+  text-decoration: none;
+  color: #09C;
+}
+
+p {
+  line-height: 20px;
+  margin: 0.7em;
+  padding: 0;
+}
+
+#article {
+  padding-bottom: 50px;
+}
+
+#article .title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+code {
+  padding: 0;
+}
+
+#panel {
+  float: left;
+  width: 20%;
+}
+
+#right {
+  margin-left: 100px;
+  float: left;
+  width: 100%;
+}
