@@ -1,43 +1,18 @@
-<!DOCTYPE html>
-<html class="no-js" lang="en-US">
-    <head>
-        <meta charset="utf-8">
-
-        
-
-        <base href="http://reusee.github.io">
-        <title>声zzz</title>
-        <link rel="canonical" href="http://reusee.github.io/post/embedded/">
-        <link href="" rel="alternate" type="application/rss+xml" title="声zzz"/>
-
-        
-<link rel="stylesheet" href="css/styles.css">
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>声zzz</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/prism.css" rel="stylesheet">
+  </head>
+  <body>
 
 
-<link href='http://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
 
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/contrib/auto-render.min.js"></script>
-
-    </head>
-    <body>
-        <div class="column">
-
-<header class="header">
-    <a href="/" class="title">声zzz</a>
-    
-</header>
-
-
-<section id="main">
-    <header class="post-header">
-      <p class="post-title"><a href="http://reusee.github.io/post/embedded/">用嵌入字段实现代码重用 </a></p>
-      <p class="post-meta">Aug 28 2014 - 2 min </p>
-    </header>
-    <article itemprop="articleBody" id="content">
-       <p>对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。</p>
+<div id="article">
+  <div class="title">用嵌入字段实现代码重用</div>
+  <div class="content"><p>对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。</p>
 
 <pre><code class="language-go">
 type Foo struct {
@@ -175,27 +150,11 @@ func main() {
 </code></pre>
 
 <p>这就实现了代码的重用。</p>
-
-    </article>
-</section>
-
-<footer class="bottom-footer">
-  <div class="copyright">
-    <p>
-    
-    <a href="http://creativecommons.org/licenses/by/4.0/" title="Creative Commons Attribution">Some rights reserved</a>; 
-    please attribute properly and link back.
-    
-    
-    </p>
-  </div>
-</footer>
-
-<script>
-    renderMathInElement(document.getElementById('main'));
-</script>
-
 </div>
-</body>
+</div>
+
+  <script type="text/javascript" src="/js/prism.js"></script>
+  <script type="text/javascript" src="/js/all.js"></script>
+  </body>
 </html>
 

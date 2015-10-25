@@ -1,43 +1,18 @@
-<!DOCTYPE html>
-<html class="no-js" lang="en-US">
-    <head>
-        <meta charset="utf-8">
-
-        
-
-        <base href="http://reusee.github.io">
-        <title>声zzz</title>
-        <link rel="canonical" href="http://reusee.github.io/post/error-handling/">
-        <link href="" rel="alternate" type="application/rss+xml" title="声zzz"/>
-
-        
-<link rel="stylesheet" href="css/styles.css">
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>声zzz</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/prism.css" rel="stylesheet">
+  </head>
+  <body>
 
 
-<link href='http://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
 
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/contrib/auto-render.min.js"></script>
-
-    </head>
-    <body>
-        <div class="column">
-
-<header class="header">
-    <a href="/" class="title">声zzz</a>
-    
-</header>
-
-
-<section id="main">
-    <header class="post-header">
-      <p class="post-title"><a href="http://reusee.github.io/post/error-handling/">go处理错误的另一种方式 </a></p>
-      <p class="post-meta">Oct 1 2015 - 2 min </p>
-    </header>
-    <article itemprop="articleBody" id="content">
-       <p>go处理错误常见的方式是</p>
+<div id="article">
+  <div class="title">go处理错误的另一种方式</div>
+  <div class="content"><p>go处理错误常见的方式是</p>
 
 <pre><code class="language-go">
 err := funcReturningError()
@@ -175,27 +150,11 @@ foobar: baz
 
 <p>以上ct、me、ce等函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
 用的代码生成工具是 <a href="https://github.com/reusee/ccg">https://github.com/reusee/ccg</a> ，可能会有另外一篇博文说说这个。</p>
-
-    </article>
-</section>
-
-<footer class="bottom-footer">
-  <div class="copyright">
-    <p>
-    
-    <a href="http://creativecommons.org/licenses/by/4.0/" title="Creative Commons Attribution">Some rights reserved</a>; 
-    please attribute properly and link back.
-    
-    
-    </p>
-  </div>
-</footer>
-
-<script>
-    renderMathInElement(document.getElementById('main'));
-</script>
-
 </div>
-</body>
+</div>
+
+  <script type="text/javascript" src="/js/prism.js"></script>
+  <script type="text/javascript" src="/js/all.js"></script>
+  </body>
 </html>
 

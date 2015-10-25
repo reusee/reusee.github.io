@@ -1,43 +1,18 @@
-<!DOCTYPE html>
-<html class="no-js" lang="en-US">
-    <head>
-        <meta charset="utf-8">
-
-        
-
-        <base href="http://reusee.github.io">
-        <title>声zzz</title>
-        <link rel="canonical" href="http://reusee.github.io/post/object/">
-        <link href="" rel="alternate" type="application/rss+xml" title="声zzz"/>
-
-        
-<link rel="stylesheet" href="css/styles.css">
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>声zzz</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/prism.css" rel="stylesheet">
+  </head>
+  <body>
 
 
-<link href='http://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
 
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/contrib/auto-render.min.js"></script>
-
-    </head>
-    <body>
-        <div class="column">
-
-<header class="header">
-    <a href="/" class="title">声zzz</a>
-    
-</header>
-
-
-<section id="main">
-    <header class="post-header">
-      <p class="post-title"><a href="http://reusee.github.io/post/object/">一种对象结构 </a></p>
-      <p class="post-meta">May 12 2014 - 1 min </p>
-    </header>
-    <article itemprop="articleBody" id="content">
-       
+<div id="article">
+  <div class="title">一种对象结构</div>
+  <div class="content">
 
 <p><a href="https://github.com/reusee/object" target="_blank"><a href="https://github.com/reusee/object">https://github.com/reusee/object</a></a></p>
 
@@ -162,27 +137,11 @@ n:1和n:m驱动就是用于降低goroutine带来的开销的。但因为goroutin
 <p>一次Call调用，需要创建Call结构，进出calls管道，执行closure，改变完成状态和广播，开销不小。
 在我机器上空closure的Benchmark的结果是，Call并Wait是840 ns/op左右，Call不Wait是560 ns/op左右。
 Emit调用的性能也在同一个数量级。</p>
-
-    </article>
-</section>
-
-<footer class="bottom-footer">
-  <div class="copyright">
-    <p>
-    
-    <a href="http://creativecommons.org/licenses/by/4.0/" title="Creative Commons Attribution">Some rights reserved</a>; 
-    please attribute properly and link back.
-    
-    
-    </p>
-  </div>
-</footer>
-
-<script>
-    renderMathInElement(document.getElementById('main'));
-</script>
-
 </div>
-</body>
+</div>
+
+  <script type="text/javascript" src="/js/prism.js"></script>
+  <script type="text/javascript" src="/js/all.js"></script>
+  </body>
 </html>
 
