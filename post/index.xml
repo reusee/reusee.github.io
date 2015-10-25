@@ -196,8 +196,7 @@ func main() {
       <guid>http://reusee.github.io/post/error-handling/</guid>
       <description>&lt;p&gt;go处理错误常见的方式是&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-err := funcReturningError()
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;err := funcReturningError()
 if err != nil {
   // 处理错误
 }
@@ -212,8 +211,7 @@ if err != nil {
 
 &lt;p&gt;首先是Err结构体，定义如下&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Err struct {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Err struct {
   Pkg, Info string
   Err error
 }
@@ -225,8 +223,7 @@ type Err struct {
 
 &lt;p&gt;然后是ce函数（check error）&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-func ce(err error, info string) {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func ce(err error, info string) {
   if err != nil {
     panic(me(err, info))
   }
@@ -239,8 +236,7 @@ func ce(err error, info string) {
 &lt;p&gt;错误用panic抛出后，必须在某个边界recover，API不应该对外暴露panic，否则会和go社区整体的理念不合，自找烦恼。
 负责这个的是ct函数（catch error）&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-func ct(err *error) {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func ct(err *error) {
   if p := recover(); p != nil {
     if e, ok := p.(error); ok {
       *err = e
@@ -255,8 +251,7 @@ func ct(err *error) {
 
 &lt;p&gt;来看看它是如何减少代码的，以 &lt;a href=&#34;https://blog.golang.org/errors-are-values&#34;&gt;https://blog.golang.org/errors-are-values&lt;/a&gt; 的一段代码为例&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-_, err = fd.Write(p0[a:b])
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;_, err = fd.Write(p0[a:b])
 if err != nil {
   return err
 }
@@ -272,8 +267,7 @@ if err != nil {
 
 &lt;p&gt;用上述机制，可以写成&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-defer ct(&amp;err)
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;defer ct(&amp;err)
 _, err = fd.Write(p0[a:b])
 ce(err, &#34;write p0&#34;)
 _, err = fd.Write(p1[c:d])
@@ -286,8 +280,7 @@ ce(err, &#34;write p2&#34;)
 
 &lt;p&gt;另外还有一个好处是，因为Err包装了上一个错误，所以定位错误比较容易。例如下面程序&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package main
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
 
 func foo() (err error) {
     defer ct(&amp;err)
@@ -343,8 +336,7 @@ foobar: baz
       <guid>http://reusee.github.io/post/embedded/</guid>
       <description>&lt;p&gt;对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Foo struct {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Foo struct {
   sync.Mutex
   // ... other fields
 }
@@ -359,9 +351,7 @@ f.Unlock()
 但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。
 Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-condition := sync.NewCond(new(Foo))
-&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;condition := sync.NewCond(new(Foo))&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型，
 而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。&lt;/p&gt;
@@ -369,16 +359,14 @@ condition := sync.NewCond(new(Foo))
 &lt;p&gt;当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。
 例如这个接口&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Named interface {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Named interface {
     PrintName()
 }
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Named interface {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Named interface {
     PrintName()
     GetName() string
 }
@@ -412,8 +400,7 @@ func main() {
 
 &lt;p&gt;其二，不增加接口方法，只传需要的数据的引用&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Named interface {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Named interface {
     PrintName()
 }
 
@@ -440,8 +427,7 @@ func main() {
 
 &lt;p&gt;其三，不使用引用，而是嵌入一个closure以获得所需数据&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-type Named interface {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Named interface {
     PrintName()
 }
 
@@ -466,8 +452,7 @@ func main() {
 
 &lt;p&gt;以上例子中，其他类型要实现Named接口，可以不实现PrintName方法，而是嵌入一个NamedImpl。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-func main() {
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func main() {
     b := struct {
         NamedImpl
         name string

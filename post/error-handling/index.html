@@ -23,8 +23,7 @@
   <div class="title">go处理错误的另一种方式</div>
   <div class="content"><p>go处理错误常见的方式是</p>
 
-<pre><code class="language-go">
-err := funcReturningError()
+<pre><code class="language-go">err := funcReturningError()
 if err != nil {
   // 处理错误
 }
@@ -39,8 +38,7 @@ if err != nil {
 
 <p>首先是Err结构体，定义如下</p>
 
-<pre><code class="language-go">
-type Err struct {
+<pre><code class="language-go">type Err struct {
   Pkg, Info string
   Err error
 }
@@ -52,8 +50,7 @@ type Err struct {
 
 <p>然后是ce函数（check error）</p>
 
-<pre><code class="language-go">
-func ce(err error, info string) {
+<pre><code class="language-go">func ce(err error, info string) {
   if err != nil {
     panic(me(err, info))
   }
@@ -66,8 +63,7 @@ func ce(err error, info string) {
 <p>错误用panic抛出后，必须在某个边界recover，API不应该对外暴露panic，否则会和go社区整体的理念不合，自找烦恼。
 负责这个的是ct函数（catch error）</p>
 
-<pre><code class="language-go">
-func ct(err *error) {
+<pre><code class="language-go">func ct(err *error) {
   if p := recover(); p != nil {
     if e, ok := p.(error); ok {
       *err = e
@@ -82,8 +78,7 @@ func ct(err *error) {
 
 <p>来看看它是如何减少代码的，以 <a href="https://blog.golang.org/errors-are-values">https://blog.golang.org/errors-are-values</a> 的一段代码为例</p>
 
-<pre><code class="language-go">
-_, err = fd.Write(p0[a:b])
+<pre><code class="language-go">_, err = fd.Write(p0[a:b])
 if err != nil {
   return err
 }
@@ -99,8 +94,7 @@ if err != nil {
 
 <p>用上述机制，可以写成</p>
 
-<pre><code class="language-go">
-defer ct(&err)
+<pre><code class="language-go">defer ct(&err)
 _, err = fd.Write(p0[a:b])
 ce(err, "write p0")
 _, err = fd.Write(p1[c:d])
@@ -113,8 +107,7 @@ ce(err, "write p2")
 
 <p>另外还有一个好处是，因为Err包装了上一个错误，所以定位错误比较容易。例如下面程序</p>
 
-<pre><code class="language-go">
-package main
+<pre><code class="language-go">package main
 
 func foo() (err error) {
     defer ct(&err)
