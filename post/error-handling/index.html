@@ -126,9 +126,7 @@ func baz() (err error) {
 }
 
 func main() {
-    if err := foo(); err != nil {
-        panic(err)
-    }
+  ce(foo(), "call foo")
 }
 </code></pre>
 
