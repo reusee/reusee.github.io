@@ -204,10 +204,10 @@ if err != nil {
 
 &lt;p&gt;然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。&lt;/p&gt;
 
-&lt;p&gt;这种写法最初我是从标准库里看到的，代码在 &lt;a href=&#34;https://github.com/golang/go/blob/master/src/encoding/gob/error.go。&#34;&gt;https://github.com/golang/go/blob/master/src/encoding/gob/error.go。&lt;/a&gt;
+&lt;p&gt;这种写法最初我是从标准库里看到的，代码在 &lt;a href=&#34;https://github.com/golang/go/blob/master/src/encoding/gob/error.go&#34;&gt;https://github.com/golang/go/blob/master/src/encoding/gob/error.go&lt;/a&gt; 。
 简言之，就是将错误用panic抛出，然后在某个边界用defer将其转为error值。这和其他用抛异常来处理错误的语言类似。
 不过上述代码并不十分通用，也没有解决最开始提出的写法繁琐的问题。
-受其启发，我现在用得最多的错误处理方式是这样的 &lt;a href=&#34;https://github.com/reusee/codes/blob/master/err/err.go。&#34;&gt;https://github.com/reusee/codes/blob/master/err/err.go。&lt;/a&gt;&lt;/p&gt;
+受其启发，我现在用得最多的错误处理方式是这样的 &lt;a href=&#34;https://github.com/reusee/codes/blob/master/err/err.go&#34;&gt;https://github.com/reusee/codes/blob/master/err/err.go&lt;/a&gt; 。&lt;/p&gt;
 
 &lt;p&gt;首先是Err结构体，定义如下&lt;/p&gt;
 

@@ -31,10 +31,10 @@ if err != nil {
 
 <p>然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。</p>
 
-<p>这种写法最初我是从标准库里看到的，代码在 <a href="https://github.com/golang/go/blob/master/src/encoding/gob/error.go。">https://github.com/golang/go/blob/master/src/encoding/gob/error.go。</a>
+<p>这种写法最初我是从标准库里看到的，代码在 <a href="https://github.com/golang/go/blob/master/src/encoding/gob/error.go">https://github.com/golang/go/blob/master/src/encoding/gob/error.go</a> 。
 简言之，就是将错误用panic抛出，然后在某个边界用defer将其转为error值。这和其他用抛异常来处理错误的语言类似。
 不过上述代码并不十分通用，也没有解决最开始提出的写法繁琐的问题。
-受其启发，我现在用得最多的错误处理方式是这样的 <a href="https://github.com/reusee/codes/blob/master/err/err.go。">https://github.com/reusee/codes/blob/master/err/err.go。</a></p>
+受其启发，我现在用得最多的错误处理方式是这样的 <a href="https://github.com/reusee/codes/blob/master/err/err.go">https://github.com/reusee/codes/blob/master/err/err.go</a> 。</p>
 
 <p>首先是Err结构体，定义如下</p>
 
