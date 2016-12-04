@@ -46,29 +46,38 @@
 
 	'use strict';
 	
-	var _tags = __webpack_require__(2);
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _render = __webpack_require__(4);
+	var _tags = __webpack_require__(1);
 	
-	var DBMon = function DBMon(databases) {
+	var _node = __webpack_require__(2);
+	
+	function DBMon(databases) {
 	  return (0, _tags.div)([(0, _tags.table)({ class: 'table table-striped latest-data' }, [(0, _tags.tbody)([databases.map(function (database) {
-	    return DB(database);
+	    return (0, _node.e)(DB, database);
 	  })])])]);
 	};
 	
-	var DB = function DB(database) {
-	  return (0, _tags.tr)({}, [(0, _tags.td)('.dbname', database.dbname), (0, _tags.td)('.query-count', [(0, _tags.span)({ class: database.lastSample.countClassName }, database.lastSample.nbQueries)]), database.lastSample.topFiveQueries.map(function (query) {
-	    return (0, _tags.td)({ class: 'Query ' + query.elapsedClassName }, [query.formatElapsed, (0, _tags.div)('.popover .left', [(0, _tags.div)('.popover-content', query.query), (0, _tags.div)('.arrow')])]);
+	function DB(database) {
+	  return (0, _tags.tr)({}, [(0, _tags.td)({ class: 'dbname' }, database.dbname), (0, _tags.td)({ class: 'query-count' }, [(0, _tags.span)({ class: database.lastSample.countClassName }, database.lastSample.nbQueries)]), database.lastSample.topFiveQueries.map(function (query) {
+	    return (0, _node.e)(function (query) {
+	      this.name = 'Query';
+	      return (0, _tags.td)({ class: 'Query ' + query.elapsedClassName }, [query.formatElapsed, (0, _tags.div)({ class: 'popover left' }, [(0, _tags.div)({ class: 'popover-content' }, query.query), (0, _tags.div)('.arrow')])]);
+	    }, query);
 	  })]);
-	};
+	}
 	
-	var last_node = void 0;
-	var target = document.getElementById('app');
+	var element = document.getElementById('app');
+	var node = void 0;
 	
-	var load = function load() {
-	  var node = DBMon(ENV.generateData().toArray());
-	  (0, _render.render)(node, target, last_node);
-	  last_node = node;
+	function load() {
+	  var _patch = (0, _node.patch)(element, DBMon(ENV.generateData().toArray()), node);
+	
+	  var _patch2 = _slicedToArray(_patch, 2);
+	
+	  element = _patch2[0];
+	  node = _patch2[1];
+	
 	  Monitoring.renderRate.ping();
 	  setTimeout(load, ENV.timeout);
 	};
@@ -76,13 +85,12 @@
 	load();
 
 /***/ },
-/* 1 */,
-/* 2 */
+/* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _node = __webpack_require__(3);
+	var _node = __webpack_require__(2);
 	
 	var helpers = ['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'bgsound', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'command', 'content', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'iframe', 'image', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li', 'link', 'listing', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meta', 'meter', 'multicol', 'nav', 'nobr', 'noembed', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'plaintext', 'pre', 'progress', 'q', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'].reduce(function (helpers, tag) {
 	  helpers[tag] = function () {
@@ -98,7 +106,7 @@
 	module.exports = helpers;
 
 /***/ },
-/* 3 */
+/* 2 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -139,16 +147,16 @@
 	  }, {
 	    key: 'set_selector',
 	    value: function set_selector(selector) {
-	      var _this = this;
-	
 	      var classes = [];
-	      selector.match(/[.#][A-Za-z][A-Za-z0-9_:-]*/g).forEach(function (part) {
+	      var parts = selector.match(/[.#][A-Za-z][A-Za-z0-9_:-]*/g);
+	      for (var i = 0, l = parts.length; i < l; i++) {
+	        var part = parts[i];
 	        if (part.charAt(0) == '#') {
-	          _this.id = part.substring(1);
+	          this.id = part.substring(1);
 	        } else if (part.charAt(0) == '.') {
 	          classes.push(part.substring(1));
 	        }
-	      });
+	      }
 	      var cls = classes.join(' ');
 	      if (cls.length > 0) {
 	        this.class = cls;
@@ -178,14 +186,12 @@
 	  }, {
 	    key: 'set_children',
 	    value: function set_children(children) {
-	      var _this2 = this;
-	
 	      this.children = this.children || [];
 	      if (Array.isArray(children)) {
 	        // flatten
-	        children.forEach(function (child) {
-	          _this2.set_children(child);
-	        });
+	        for (var i = 0, l = children.length; i < l; i++) {
+	          this.set_children(children[i]);
+	        }
 	      } else if (typeof children === 'string' || typeof children === 'number') {
 	        var child = new Node();
 	        child.text = children;
@@ -218,9 +224,9 @@
 	        element.className = this.class;
 	      }
 	      if (this.children !== null) {
-	        this.children.forEach(function (child) {
-	          element.appendChild(child.toElement());
-	        });
+	        for (var i = 0, l = this.children.length; i < l; i++) {
+	          element.appendChild(this.children[i].toElement());
+	        }
 	      }
 	      if (this.attributes !== null) {
 	        for (var _key in this.attributes) {
@@ -267,13 +273,22 @@
 	}();
 	
 	function e() {
-	  var node = new Node();
-	
-	  var arg1 = void 0;
-	
 	  for (var _len = arguments.length, args = Array(_len), _key3 = 0; _key3 < _len; _key3++) {
 	    args[_key3] = arguments[_key3];
 	  }
+	
+	  // Thunk
+	  if (typeof args[0] === 'function') {
+	    var thunk = new Thunk();
+	    thunk.func = args[0];
+	    thunk.args = args.slice(1);
+	    thunk.name = thunk.func.name;
+	    return thunk;
+	  }
+	
+	  var node = new Node();
+	
+	  var arg1 = void 0;
 	
 	  switch (args.length) {
 	    case 1:
@@ -368,9 +383,43 @@
 	// 将 last_element 修改为 node 所对应的结构
 	// last_node 是和 last_element 当前结构对应的 Node
 	function patch(last_element, node, last_node) {
+	  // thunk
+	  var last_thunk = void 0;
+	  if (last_node && last_node instanceof Thunk) {
+	    last_thunk = last_node;
+	    last_node = last_thunk.node;
+	  }
+	  if (node instanceof Thunk) {
+	    var thunk = node;
+	    // 检查是否能复用 last_thunk 的 node
+	    if (last_thunk) {
+	      if (thunk.name == last_thunk.name) {
+	        // 同名组件，可能可以用
+	        // 检查参数
+	        var same = true;
+	        for (var i = 0, l = thunk.args.length; i < l; i++) {
+	          if (thunk.args[i] !== last_thunk.args[i]) {
+	            same = false;
+	            break;
+	          }
+	        }
+	        if (same) {
+	          // 可以复用
+	          //console.log('reuse node', thunk.name);
+	          thunk.node = last_thunk.node;
+	          // 有 node 就可能有 element，也复用之
+	          thunk.element = last_thunk.element;
+	        }
+	      }
+	    }
+	    // 不管是否能复用，都取 thunk 的 node
+	    node = thunk.getNode();
+	  }
+	
 	  // 如果两个 Node 是同一个，没必要修改，直接返回
+	  // 如果 thunk 的 node 重用了，会在这里返回
 	  if (node === last_node) {
-	    return;
+	    return [last_element, node];
 	  }
 	
 	  // 下面是一些没法修改 last_element 的情况，只能新建一个元素
@@ -384,7 +433,7 @@
 	    // 插入新的，删掉旧的
 	    last_element.parentNode.insertBefore(element, last_element);
 	    last_element.parentNode.removeChild(last_element);
-	    return;
+	    return [element, node];
 	  }
 	
 	  // innerHTML 属性
@@ -493,22 +542,22 @@
 	    // 新旧 Node 的子 Node 的数量可能不一样，先处理共有的数目
 	    var common_length = Math.min(node.children.length, last_node.children.length);
 	    var child_elements = last_element.childNodes;
-	    for (var i = 0; i < common_length; i++) {
+	    for (var _i = 0; _i < common_length; _i++) {
 	      // 递归调用 patch 函数，传入子元素和子 Node
-	      patch(child_elements[i], node.children[i], last_node.children[i]);
+	      patch(child_elements[_i], node.children[_i], last_node.children[_i]);
 	    }
 	    // 如果新 Node 的子 Node 比较多，插入
-	    for (var _i = common_length, l = node.children.length; _i < l; _i++) {
-	      last_element.appendChild(node.children[_i].toElement());
+	    for (var _i2 = common_length, _l = node.children.length; _i2 < _l; _i2++) {
+	      last_element.appendChild(node.children[_i2].toElement());
 	    }
 	    // 如果旧 Node 的子 Node 比较多，删除
-	    for (var _i2 = common_length, _l = last_node.children.length; _i2 < _l; _i2++) {
+	    for (var _i3 = common_length, _l2 = last_node.children.length; _i3 < _l2; _i3++) {
 	      last_element.removeChild(last_element.childNodes[common_length]);
 	    }
 	  } else if (node.children) {
 	    // 只有新 Node 有子 Node
-	    for (var _i3 = 0, _l2 = node.children.length; _i3 < _l2; _i3++) {
-	      last_element.appendChild(node.children[_i3].toElement());
+	    for (var _i4 = 0, _l3 = node.children.length; _i4 < _l3; _i4++) {
+	      last_element.appendChild(node.children[_i4].toElement());
 	    }
 	  } else if (last_node.children) {
 	    // 新 Node 没有子 Node，删掉所有子元素
@@ -516,30 +565,41 @@
 	      last_element.removeChild(last_element.firstChild);
 	    }
 	  }
+	
+	  return [last_element, node];
 	}
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
 	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.render = render;
+	var Thunk = function () {
+	  function Thunk() {
+	    _classCallCheck(this, Thunk);
 	
-	var _node = __webpack_require__(3);
-	
-	function render(node, element) {
-	  var last_node = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-	
-	  if (element.firstChild) {
-	    (0, _node.patch)(element.firstChild, node, last_node);
-	  } else {
-	    element.appendChild(node.toElement());
+	    this.func = null;
+	    this.args = null;
+	    this.node = null;
+	    this.element = null;
+	    this.name = null;
 	  }
-	}
+	
+	  _createClass(Thunk, [{
+	    key: 'toElement',
+	    value: function toElement() {
+	      if (!this.element) {
+	        this.element = this.getNode().toElement();
+	      }
+	      return this.element;
+	    }
+	  }, {
+	    key: 'getNode',
+	    value: function getNode() {
+	      if (!this.node) {
+	        this.node = this.func.apply(this, this.args);
+	      }
+	      return this.node;
+	    }
+	  }]);
+
+	  return Thunk;
+	}();
 
 /***/ }
 /******/ ]);
