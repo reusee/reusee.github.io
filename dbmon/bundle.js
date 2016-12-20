@@ -50,7 +50,7 @@
 	
 	var _dom = __webpack_require__(2);
 	
-	var _app = __webpack_require__(5);
+	var _app = __webpack_require__(4);
 	
 	function DBMon(state) {
 	  return (0, _tags.div)([(0, _tags.table)('.table .table-striped .latest-data', [(0, _tags.tbody)([state.databases.map(function (database) {
@@ -155,8 +155,7 @@
 	    this.text = null;
 	    this.innerHTML = null;
 	    this.element = null;
-	
-	    this.online_callback = null;
+	    this.hooks = null;
 	  }
 	
 	  _createClass(Node, [{
@@ -208,17 +207,27 @@
 	          // styles
 	          this.style = properties.style;
 	        } else if (/^on/.test(key) && typeof properties[key] === 'function') {
-	          if (key == 'online') {
-	            this.online_callback = properties[key];
+	          if (key == 'oncreated' || key == 'oncreate') {
+	            this.hooks = this.hooks || {};
+	            this.hooks.created = this.hooks.created || [];
+	            this.hooks.created.push(properties[key]);
+	          } else if (key == 'onpatch' || key == 'onpatched') {
+	            this.hooks = this.hooks || {};
+	            this.hooks.patched = this.hooks.patched || [];
+	            this.hooks.patched.push(properties[key]);
 	          } else {
 	            // events
 	            this.events = this.events || {};
 	            this.events[key] = properties[key];
 	          }
 	        } else {
-	          if (this.tag == 'input' && key == 'checked' && !properties[key] || this.tag == 'input' && key == 'disabled' && !properties[key] || this.tag == 'button' && key == 'disabled' && !properties[key]) {
-	            continue;
-	          }
+	          //if (
+	          //  (this.tag == 'input' && key == 'checked' && !properties[key])
+	          //  || (this.tag == 'input' && key == 'disabled' && !properties[key])
+	          //  || (this.tag == 'button' && key == 'disabled' && !properties[key])
+	          //) {
+	          //  continue
+	          //}
 	          // attributes
 	          this.attributes = this.attributes || {};
 	          this.attributes[key] = properties[key];
@@ -244,13 +253,16 @@
 	    }
 	  }, {
 	    key: 'toElement',
-	    value: function toElement() {
+	    value: function toElement(name) {
 	      var element = void 0;
 	      if (this.text !== null) {
 	        element = document.createTextNode(this.text);
 	      } else {
 	        element = document.createElement(this.tag);
-	        element.setAttribute('aff-element-serial', element_serial);
+	        element.setAttribute('aff-serial', element_serial);
+	        if (name) {
+	          element.setAttribute('aff-name', name);
+	        }
 	        element_serial++;
 	      }
 	      if (this.innerHTML !== null) {
@@ -284,8 +296,15 @@
 	      if (this.attributes !== null) {
 	        for (var _key in this.attributes) {
 	          var value = this.attributes[_key];
-	          if (value !== undefined && value !== null) {
+	          var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+	          if (valueType == 'string' || valueType == 'number') {
 	            element.setAttribute(_key, value);
+	          } else if (valueType == 'boolean') {
+	            if (value) {
+	              element.setAttribute(_key, true);
+	            } else {
+	              element.removeAttribute(_key);
+	            }
 	          }
 	        }
 	      }
@@ -297,8 +316,10 @@
 	        }
 	      }
 	      this.element = element;
-	      if (this.online_callback) {
-	        this.online_callback(element);
+	      if (this.hooks && this.hooks.created) {
+	        this.hooks.created.forEach(function (fn) {
+	          return fn(element);
+	        });
 	      }
 	      return element;
 	    }
@@ -347,7 +368,7 @@
 	    args[_key3] = arguments[_key3];
 	  }
 	
-	  if (args.length === 0) {
+	  if (args.length == 0) {
 	    throw ['no arguments to t()'];
 	  }
 	
@@ -439,7 +460,6 @@
 	
 	        default:
 	          throw ['bad argument at index 1 to e()', args];
-	          break;
 	      }
 	
 	      break;
@@ -460,7 +480,6 @@
 	          break;
 	        default:
 	          throw ['bad argument at index 1 to e()', args];
-	          break;
 	      }
 	
 	      arg2 = args[2];
@@ -484,7 +503,6 @@
 	
 	    default:
 	      throw ['bad arguments to e()', args];
-	      break;
 	  }
 	
 	  return node;
@@ -588,9 +606,11 @@
 	        }
 	      }
 	      // delete styles exist in old Node but not in new
-	      for (var _key6 in last_node.style) {
-	        if (!(_key6 in node.style)) {
-	          last_element.style[_key6] = null;
+	      if (_typeof(last_node.style) === 'object') {
+	        for (var _key6 in last_node.style) {
+	          if (!(_key6 in node.style)) {
+	            last_element.style[_key6] = '';
+	          }
 	        }
 	      }
 	    } else if (node.style) {
@@ -600,9 +620,7 @@
 	      }
 	    } else if (last_node.style) {
 	      // no style in new Node, delete all
-	      for (var _key8 in last_node.style) {
-	        last_element.style[_key8] = null;
-	      }
+	      last_element.style = undefined;
 	    }
 	  }
 	
@@ -614,58 +632,72 @@
 	  // attributes
 	  if (node.attributes && last_node.attributes) {
 	    // update common attributes
-	    for (var _key9 in node.attributes) {
-	      if (node.attributes[_key9] != last_node.attributes[_key9]) {
-	        var value = node.attributes[_key9];
-	        if (value !== undefined && value !== null) {
-	          last_element.setAttribute(_key9, value);
+	    for (var _key8 in node.attributes) {
+	      if (node.attributes[_key8] != last_node.attributes[_key8]) {
+	        var value = node.attributes[_key8];
+	        var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+	        if (valueType == 'string' || valueType == 'number') {
+	          last_element.setAttribute(_key8, value);
+	        } else if (valueType == 'boolean') {
+	          if (value) {
+	            last_element.setAttribute(_key8, true);
+	          } else {
+	            last_element.removeAttribute(_key8);
+	          }
 	        }
 	      }
 	    }
 	    // delete non-exist attributes
-	    for (var _key10 in last_node.attributes) {
-	      if (!(_key10 in node.attributes)) {
-	        last_element.removeAttribute(_key10);
+	    for (var _key9 in last_node.attributes) {
+	      if (!(_key9 in node.attributes)) {
+	        last_element.removeAttribute(_key9);
 	      }
 	    }
 	  } else if (node.attributes) {
 	    // set new attributes only
-	    for (var _key11 in node.attributes) {
-	      var _value = node.attributes[_key11];
-	      if (_value !== undefined && _value !== null) {
-	        last_element.setAttribute(_key11, _value);
+	    for (var _key10 in node.attributes) {
+	      var _value = node.attributes[_key10];
+	      var _valueType = typeof _value === 'undefined' ? 'undefined' : _typeof(_value);
+	      if (_valueType == 'string' || _valueType == 'number') {
+	        last_element.setAttribute(_key10, _value);
+	      } else if (_valueType == 'boolean') {
+	        if (_value) {
+	          last_element.setAttribute(_key10, true);
+	        } else {
+	          last_element.removeAttribute(_key10);
+	        }
 	      }
 	    }
 	  } else if (last_node.attributes) {
 	    // no attributes in new Node, delete all
-	    for (var _key12 in last_node.attributes) {
-	      last_element.removeAttribute(_key12);
+	    for (var _key11 in last_node.attributes) {
+	      last_element.removeAttribute(_key11);
 	    }
 	  }
 	
 	  // events
 	  // not implementing global event proxy
 	  if (node.events && last_node.events) {
-	    for (var _key13 in node.events) {
+	    for (var _key12 in node.events) {
 	      // set events, bind current node to callback function
 	      // to enable referencing current node
-	      element_set_listener(last_element, _key13, node.events[_key13].bind(node));
+	      element_set_listener(last_element, _key12, node.events[_key12].bind(node));
 	    }
 	    var serial = last_element.__element_serial;
-	    for (var _key14 in element_events[serial]) {
-	      if (!(_key14 in node.events)) {
-	        element_events[serial][_key14] = false;
+	    for (var _key13 in element_events[serial]) {
+	      if (!(_key13 in node.events)) {
+	        element_events[serial][_key13] = false;
 	      }
 	    }
 	  } else if (node.events) {
-	    for (var _key15 in node.events) {
+	    for (var _key14 in node.events) {
 	      // set events, bind current node to callback function
-	      element_set_listener(last_element, _key15, node.events[_key15].bind(node));
+	      element_set_listener(last_element, _key14, node.events[_key14].bind(node));
 	    }
 	  } else if (last_node.events) {
 	    var _serial = last_element.__element_serial;
-	    for (var _key16 in element_events[_serial]) {
-	      element_events[_serial][_key16] = false;
+	    for (var _key15 in element_events[_serial]) {
+	      element_events[_serial][_key15] = false;
 	    }
 	  }
 	
@@ -712,6 +744,12 @@
 	  node.element = last_element;
 	  if (thunk) {
 	    thunk.element = last_element;
+	  }
+	
+	  if (node.hooks && node.hooks.patched) {
+	    node.hooks.patched.forEach(function (fn) {
+	      return fn(last_element);
+	    });
 	  }
 	
 	  return [last_element, node];
@@ -767,7 +805,7 @@
 	          this.element = warning('RENDER ERROR: cannot render ' + node).toElement();
 	          console.warn('cannot render', node);
 	        } else {
-	          this.element = node.toElement();
+	          this.element = node.toElement(this.name);
 	        }
 	      }
 	      return this.element;
@@ -801,7 +839,7 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 	
@@ -812,9 +850,6 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
 	exports.equal = equal;
-	
-	var _object = __webpack_require__(4);
-	
 	function equal(a, b, a_version_info, b_version_info) {
 	  var type_a = typeof a === 'undefined' ? 'undefined' : _typeof(a);
 	  var type_b = typeof b === 'undefined' ? 'undefined' : _typeof(b);
@@ -824,24 +859,23 @@
 	  if (type_a === 'undefined') {
 	    return true;
 	  } else if (type_a === 'object') {
-	    // frozen objects, compare by reference
-	    if ((0, _object.object_has_tag)(a, 'frozen') && (0, _object.object_has_tag)(b, 'frozen')) {
-	      return a === b;
-	    }
 	    // versioned objects
 	    if (a.hasOwnProperty('__aff_version') && b.hasOwnProperty('__aff_version') && a === b) {
 	      if (!a_version_info || !b_version_info) {
 	        return false;
 	      }
-	      var va = a_version_info;
-	      if ((typeof va === 'undefined' ? 'undefined' : _typeof(va)) === 'object') {
+	      /* TODO
+	      let va = a_version_info;
+	      if (typeof va === 'object') {
 	        va = va.version;
 	      }
-	      var vb = b_version_info;
-	      if ((typeof vb === 'undefined' ? 'undefined' : _typeof(vb)) === 'object') {
+	      let vb = b_version_info;
+	      if (typeof vb === 'object') {
 	        vb = vb.version;
 	      }
 	      return va === vb;
+	      */
+	      return a_version_info === b_version_info;
 	    }
 	    // deep compare
 	    var keys_a = Object.keys(a);
@@ -864,28 +898,6 @@
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.object_add_tag = object_add_tag;
-	exports.object_has_tag = object_has_tag;
-	function object_add_tag(obj, tag) {
-	  Object.defineProperty(obj, '__tag_' + tag, {
-	    __proto__: null,
-	    value: true
-	  });
-	}
-	
-	function object_has_tag(obj, tag) {
-	  return obj['__tag_' + tag] === true;
-	}
-
-/***/ },
-/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -899,7 +911,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _state = __webpack_require__(6);
+	var _state = __webpack_require__(5);
 	
 	var _dom = __webpack_require__(2);
 	
@@ -914,6 +926,7 @@
 	    this.node = null;
 	    this.patching = false;
 	    this.updated = false;
+	    this.update_count = 0;
 	    this.init.apply(this, arguments);
 	  }
 	
@@ -932,7 +945,6 @@
 	          this.node_func = arg;
 	        } else {
 	          this.state = arg;
-	          //freeze_all(this.state);
 	          (0, _state.versionize)(this.state);
 	        }
 	      }
@@ -954,12 +966,12 @@
 	      }
 	
 	      this.beforeUpdate.apply(this, [this.state].concat(args));
-	      //this.state = copy_update(this.state, ...args);
 	      this.state = _state.versioned_update.apply(undefined, [this.state].concat(args));
 	      this.afterUpdate.apply(this, [this.state].concat(args));
 	      if (!this.patching) {
 	        this.patching = true;
 	        this.updated = false;
+	        this.update_count = 0;
 	
 	        var _patch = (0, _dom.patch)(this.element, this.node_func(this.state, this.update.bind(this)), this.node);
 	
@@ -969,6 +981,10 @@
 	        this.node = _patch2[1];
 	
 	        while (this.updated) {
+	          if (this.update_count > 4096) {
+	            // infinite loop
+	            throw ['infinite loop in updating', args];
+	          }
 	          // if state is updated when patching, patch again
 	          this.updated = false;
 	
@@ -980,9 +996,11 @@
 	          this.node = _patch4[1];
 	        }
 	        this.patching = false;
+	        this.update_count = 0;
 	      } else {
 	        // state updated when patching
 	        this.updated = true;
+	        this.update_count++;
 	      }
 	      return this.state;
 	    }
@@ -1005,25 +1023,20 @@
 	}();
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
+/* 5 */
+/***/ function(module, exports) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.$any = exports.$filter = exports.$map = exports.$del_at = exports.$reduce = exports.$push = exports.$merge = exports.$dec = exports.$inc = undefined;
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	exports.copy_update = copy_update;
-	exports.freeze_all = freeze_all;
 	exports.pick = pick;
 	exports.versionize = versionize;
 	exports.versioned_update = versioned_update;
-	
-	var _object = __webpack_require__(4);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -1034,9 +1047,6 @@
 	  op: 'inc',
 	  apply: function apply(obj) {
 	    return (obj || 0) + 1;
-	  },
-	  inplace_apply: function inplace_apply(obj) {
-	    return (obj || 0) + 1;
 	  }
 	};
 	
@@ -1044,9 +1054,6 @@
 	  __is_op: true,
 	  op: 'dec',
 	  apply: function apply(obj) {
-	    return obj - 1;
-	  },
-	  inplace_apply: function inplace_apply(obj) {
 	    return obj - 1;
 	  }
 	};
@@ -1057,20 +1064,6 @@
 	    op: 'merge',
 	    args: [spec],
 	    apply: function apply(obj) {
-	      if (Array.isArray(spec)) {
-	        return copy_update.apply(undefined, [obj].concat(_toConsumableArray(spec)));
-	      }
-	      for (var key in spec) {
-	        var o2 = spec[key];
-	        if ((typeof o2 === 'undefined' ? 'undefined' : _typeof(o2)) == 'object' && !Array.isArray(o2) && !o2.__is_op) {
-	          obj = copy_update(obj, key, $merge(o2));
-	        } else {
-	          obj = copy_update(obj, key, o2);
-	        }
-	      }
-	      return obj;
-	    },
-	    inplace_apply: function inplace_apply(obj) {
 	      if (Array.isArray(spec)) {
 	        return versioned_update.apply(undefined, [obj].concat(_toConsumableArray(spec)));
 	      }
@@ -1093,12 +1086,6 @@
 	    op: 'push',
 	    args: [elem],
 	    apply: function apply(obj) {
-	      var o2 = [];
-	      o2.push.apply(o2, _toConsumableArray(obj));
-	      o2.push(elem);
-	      return o2;
-	    },
-	    inplace_apply: function inplace_apply(obj) {
 	      obj.push(elem);
 	      return obj;
 	    }
@@ -1112,12 +1099,6 @@
 	    op: what,
 	    args: [fn, accumulated],
 	    apply: function apply(obj) {
-	      for (var key in obj) {
-	        accumulated = fn(accumulated, obj[key], key);
-	      }
-	      return accumulated;
-	    },
-	    inplace_apply: function inplace_apply(obj) {
 	      for (var key in obj) {
 	        accumulated = fn(accumulated, obj[key], key);
 	      }
@@ -1160,34 +1141,11 @@
 	        } else {
 	          var _o = {};
 	          for (var k in obj) {
-	            if (fn(obj[k], k)) {
+	            if (fn(obj[k], k) === true) {
 	              _o[k] = obj[k];
 	            }
 	          }
 	          return _o;
-	        }
-	      } else {
-	        return fn(obj);
-	      }
-	    },
-	    inplace_apply: function inplace_apply(obj) {
-	      if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) == 'object') {
-	        if (Array.isArray(obj)) {
-	          var o2 = [];
-	          for (var i = 0; i < obj.length; i++) {
-	            if (fn(obj[i], i)) {
-	              o2.push(obj[i]);
-	            }
-	          }
-	          return o2;
-	        } else {
-	          var _o2 = {};
-	          for (var k in obj) {
-	            if (fn(obj[k], k)) {
-	              _o2[k] = obj[k];
-	            }
-	          }
-	          return _o2;
 	        }
 	      } else {
 	        return fn(obj);
@@ -1200,129 +1158,11 @@
 	
 	var $any = exports.$any = { __predict_any: true };
 	
-	// path-copying update
-	
-	function copy_update(obj) {
-	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
-	
-	  if (args.length == 0) {
-	    // no update
-	    return obj;
-	  } else if (args.length == 1) {
-	    // single op
-	    if (args[0].__is_op) {
-	      return freeze_all(args[0].apply(obj));
-	    } else {
-	      return freeze_all(args[0]);
-	    }
-	  } else {
-	    if (Array.isArray(obj)) {
-	      // copy update array
-	      var index = args[0];
-	      var new_obj = [];
-	      var all_frozen = true;
-	      if (index === $any) {
-	        // update all indexes
-	        for (var i = 0; i < obj.length; i++) {
-	          new_obj.push(copy_update.apply(undefined, [obj[i]].concat(_toConsumableArray(args.slice(1)))));
-	          if (_typeof(new_obj[i]) === 'object' && !(0, _object.object_has_tag)(new_obj[i], 'frozen')) {
-	            all_frozen = false;
-	          }
-	        }
-	      } else {
-	        // only one index
-	        for (var _i = 0; _i < obj.length; _i++) {
-	          if (_i == index) {
-	            new_obj.push(copy_update.apply(undefined, [obj[_i]].concat(_toConsumableArray(args.slice(1)))));
-	          } else {
-	            new_obj.push(obj[_i]);
-	          }
-	          if (_typeof(new_obj[_i]) === 'object' && !(0, _object.object_has_tag)(new_obj[_i], 'frozen')) {
-	            all_frozen = false;
-	          }
-	        }
-	      }
-	      if (all_frozen) {
-	        (0, _object.object_add_tag)(new_obj, 'frozen');
-	        Object.freeze(new_obj);
-	      }
-	      return new_obj;
-	    } else {
-	      // copy update object
-	      var key = args[0];
-	      var _new_obj = {};
-	      var _all_frozen = true;
-	      if (key === $any) {
-	        // update all keys
-	        for (var k in obj) {
-	          _new_obj[k] = copy_update.apply(undefined, [obj[k]].concat(_toConsumableArray(args.slice(1))));
-	          if (_typeof(_new_obj[k]) === 'object' && !(0, _object.object_has_tag)(_new_obj[k], 'frozen')) {
-	            _all_frozen = false;
-	          }
-	        }
-	      } else {
-	        // update single key
-	        var key_updated = false;
-	        for (var _k in obj) {
-	          if (_k == key) {
-	            _new_obj[_k] = copy_update.apply(undefined, [obj[_k]].concat(_toConsumableArray(args.slice(1))));
-	            key_updated = true;
-	          } else {
-	            var desc = Object.getOwnPropertyDescriptor(obj, _k);
-	            var getter = desc.get;
-	            var setter = desc.set;
-	            if (getter || setter) {
-	              Object.defineProperty(_new_obj, _k, {
-	                get: getter,
-	                set: setter,
-	                enumerable: true
-	              });
-	            } else {
-	              _new_obj[_k] = obj[_k];
-	            }
-	          }
-	          if (_typeof(_new_obj[_k]) === 'object' && !(0, _object.object_has_tag)(_new_obj[_k], 'frozen')) {
-	            _all_frozen = false;
-	          }
-	        }
-	        if (!key_updated) {
-	          // insert
-	          _new_obj[key] = copy_update.apply(undefined, [undefined].concat(_toConsumableArray(args.slice(1))));
-	          if (_typeof(_new_obj[key]) === 'object' && !(0, _object.object_has_tag)(_new_obj[key], 'frozen')) {
-	            _all_frozen = false;
-	          }
-	        }
-	      }
-	      if (_all_frozen) {
-	        (0, _object.object_add_tag)(_new_obj, 'frozen');
-	        Object.freeze(_new_obj);
-	      }
-	      return _new_obj;
-	    }
-	  }
-	}
-	
-	function freeze_all(obj) {
-	  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object' || (0, _object.object_has_tag)(obj, 'frozen')) {
-	    return obj;
-	  }
-	  for (var k in obj) {
-	    if (_typeof(obj[k]) == 'object') {
-	      freeze_all(obj[k]);
-	    }
-	  }
-	  (0, _object.object_add_tag)(obj, 'frozen');
-	  Object.freeze(obj);
-	  return obj;
-	}
-	
 	// utils
 	
 	function pick(obj) {
-	  for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-	    keys[_key2 - 1] = arguments[_key2];
+	  for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    keys[_key - 1] = arguments[_key];
 	  }
 	
 	  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
@@ -1336,14 +1176,14 @@
 	      }
 	      return new_obj;
 	    } else {
-	      var _new_obj2 = {};
-	      for (var _i2 = 0; _i2 < keys.length; _i2++) {
-	        var _key3 = keys[_i2];
-	        if (obj[_key3] !== undefined) {
-	          _new_obj2[_key3] = obj[_key3];
+	      var _new_obj = {};
+	      for (var _i = 0; _i < keys.length; _i++) {
+	        var _key2 = keys[_i];
+	        if (obj[_key2] !== undefined) {
+	          _new_obj[_key2] = obj[_key2];
 	        }
 	      }
-	      return _new_obj2;
+	      return _new_obj;
 	    }
 	  } else {
 	    throw ['not pickable', obj, keys];
@@ -1364,23 +1204,24 @@
 	    versionize(obj[k]);
 	  }
 	  Object.defineProperty(obj, '__aff_version', {
-	    __proto__: null,
+	    configurable: false,
+	    enumerable: false,
 	    writable: true,
 	    value: 1
 	  });
 	}
 	
 	function versioned_update(obj) {
-	  for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key4 = 1; _key4 < _len3; _key4++) {
-	    args[_key4 - 1] = arguments[_key4];
+	  for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key3 = 1; _key3 < _len2; _key3++) {
+	    args[_key3 - 1] = arguments[_key3];
 	  }
 	
 	  if (args.length === 0) {
 	    return obj;
 	  } else if (args.length === 1) {
 	    var ret = void 0;
-	    if (args[0].__is_op) {
-	      ret = args[0].inplace_apply(obj);
+	    if (_typeof(args[0]) === 'object' && args[0].__is_op) {
+	      ret = args[0].apply(obj);
 	    } else {
 	      ret = args[0];
 	    }
@@ -1389,9 +1230,11 @@
 	  } else {
 	    if (!obj) {
 	      obj = {};
-	      versionize(obj);
 	    }
 	    if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+	      if (!obj.hasOwnProperty('__aff_version')) {
+	        versionize(obj);
+	      }
 	      var key = args[0];
 	      for (var k in obj) {
 	        if (k == key || key === $any) {
@@ -1407,7 +1250,6 @@
 	      throw ['bad update path', obj, args];
 	    }
 	  }
-	  throw ['no here'];
 	}
 
 /***/ }
