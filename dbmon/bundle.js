@@ -46,27 +46,23 @@
 
 	'use strict';
 	
-	var _tags = __webpack_require__(1);
-	
-	var _dom = __webpack_require__(5);
-	
-	var _app = __webpack_require__(2);
+	var _index = __webpack_require__(1);
 	
 	function DBMon(state) {
-	  return (0, _tags.div)([(0, _tags.table)('.table .table-striped .latest-data', [(0, _tags.tbody)([state.databases.map(function (database) {
-	    return (0, _dom.t)(DB, database);
+	  return (0, _index.div)([(0, _index.table)('.table .table-striped .latest-data', [(0, _index.tbody)([state.databases.map(function (database) {
+	    return (0, _index.t)(DB, database);
 	  })])])]);
 	};
 	
 	function DB(database) {
-	  return (0, _tags.tr)({}, [(0, _tags.td)('.dbname', database.dbname), (0, _tags.td)('.query-count', [(0, _tags.span)({ class: database.lastSample.countClassName }, database.lastSample.nbQueries)]), database.lastSample.topFiveQueries.map(function (query) {
-	    return (0, _dom.t)('Query', function (query) {
-	      return (0, _tags.td)('.Query .' + query.elapsedClassName, [query.formatElapsed, (0, _tags.div)('.popover .left', [(0, _tags.div)('.popover-content', query.query), (0, _tags.div)('.arrow')])]);
+	  return (0, _index.tr)({}, [(0, _index.td)('.dbname', database.dbname), (0, _index.td)('.query-count', [(0, _index.span)({ class: database.lastSample.countClassName }, database.lastSample.nbQueries)]), database.lastSample.topFiveQueries.map(function (query) {
+	    return (0, _index.t)('Query', function (query) {
+	      return (0, _index.td)('.Query .' + query.elapsedClassName, [query.formatElapsed, (0, _index.div)('.popover .left', [(0, _index.div)('.popover-content', query.query), (0, _index.div)('.arrow')])]);
 	    }, query);
 	  })]);
 	}
 	
-	var app = new _app.App(document.getElementById('app'), DBMon, {
+	var app = new _index.App(document.getElementById('app'), DBMon, {
 	  databases: ENV.generateData().toArray()
 	});
 	
@@ -84,36 +80,65 @@
 
 	'use strict';
 	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	
 	var _app = __webpack_require__(2);
 	
-	var helpers = ['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'bgsound', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'command', 'content', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'head', 'header', 'hgroup', 'hr', 'html', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'i', 'iframe', 'image', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li', 'link', 'listing', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meta', 'meter', 'multicol', 'nav', 'nobr', 'noembed', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'plaintext', 'pre', 'progress', 'q', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'].reduce(function (helpers, tag) {
-	  helpers[tag] = function () {
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
+	Object.defineProperty(exports, 'App', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.App;
+	  }
+	});
+	Object.defineProperty(exports, 't', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.t;
+	  }
+	});
+	Object.defineProperty(exports, 'e', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.e;
+	  }
+	});
+	Object.defineProperty(exports, 'setBeforeThunkCallFunc', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.setBeforeThunkCallFunc;
+	  }
+	});
+	Object.defineProperty(exports, 'setAfterThunkCallFunc', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.setAfterThunkCallFunc;
+	  }
+	});
+	
+	var _state = __webpack_require__(3);
+	
+	Object.keys(_state).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _state[key];
 	    }
+	  });
+	});
 	
-	    return _app.e.apply(undefined, [tag].concat(args));
-	  };
-	  helpers[tag.charAt(0).toUpperCase() + tag.slice(1)] = helpers[tag];
-	  helpers[tag.toUpperCase()] = helpers[tag];
-	  return helpers;
-	}, {});
+	var _tags = __webpack_require__(4);
 	
-	module.exports = _extends({}, helpers, {
-	
-	  none: (0, _app.e)('div', {
-	    style: {
-	      display: 'none'
+	Object.keys(_tags).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _tags[key];
 	    }
-	  }),
-	
-	  clear: (0, _app.e)('div', {
-	    style: {
-	      clear: 'both'
-	    }
-	  })
+	  });
 	});
 
 /***/ },
@@ -135,10 +160,9 @@
 	
 	exports.t = t;
 	exports.e = e;
+	exports.equal = equal;
 	
 	var _state = __webpack_require__(3);
-	
-	var _equality = __webpack_require__(4);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -151,6 +175,8 @@
 	    this.node = null;
 	    this.patching = false;
 	    this.patch_tick = 1;
+	    this.dirty_tree = {};
+	    this.next_dirty_tree = {};
 	    this.updated = false;
 	    this.update_count = 0;
 	    this.init.apply(this, arguments);
@@ -173,8 +199,8 @@
 	          this.state = arg;
 	        }
 	      }
-	      if (this.element && this.node_func && this.state) {
-	        this.update('__initialized', true);
+	      if (this.element !== undefined && this.node_func !== undefined && this.state !== undefined) {
+	        this.update();
 	      }
 	    }
 	  }, {
@@ -191,7 +217,7 @@
 	      }
 	
 	      this.beforeUpdate.apply(this, [this.state].concat(args));
-	      this.state = this.update_state.apply(this, [this.state].concat(args));
+	      this.state = this.update_state.apply(this, [this.next_dirty_tree, this.state].concat(args));
 	      this.afterUpdate.apply(this, [this.state].concat(args));
 	      if (!this.element) {
 	        return this.state;
@@ -201,6 +227,8 @@
 	        this.updated = false;
 	        this.update_count = 0;
 	        this.patch_tick++;
+	        this.dirty_tree = this.next_dirty_tree;
+	        this.next_dirty_tree = {};
 	
 	        var _patch = this.patch(this.element, this.node_func(this.state), this.node);
 	
@@ -217,6 +245,8 @@
 	          // if state is updated when patching, patch again
 	          this.updated = false;
 	          this.patch_tick++;
+	          this.dirty_tree = this.next_dirty_tree;
+	          this.next_dirty_tree = {};
 	
 	          var _patch3 = this.patch(this.element, this.node_func(this.state), this.node);
 	
@@ -248,10 +278,40 @@
 	      return this.element.innerHTML;
 	    }
 	  }, {
+	    key: 'get',
+	    value: function get() {
+	      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+	        args[_key3] = arguments[_key3];
+	      }
+	
+	      var path = args;
+	      if (path.length == 1 && Array.isArray(path[0])) {
+	        path = path[0];
+	      }
+	      var obj = this.state;
+	      for (var i = 0; i < path.length; i++) {
+	        obj = obj[path[i]];
+	      }
+	      return obj;
+	    }
+	  }, {
+	    key: 'sub',
+	    value: function sub() {
+	      for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+	        args[_key4] = arguments[_key4];
+	      }
+	
+	      var path = args;
+	      if (path.length == 1 && Array.isArray(path[0])) {
+	        path = path[0];
+	      }
+	      return new SubState(this, path);
+	    }
+	  }, {
 	    key: 'update_state',
-	    value: function update_state(obj) {
-	      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-	        args[_key3 - 1] = arguments[_key3];
+	    value: function update_state(dirty_tree, obj) {
+	      for (var _len5 = arguments.length, args = Array(_len5 > 2 ? _len5 - 2 : 0), _key5 = 2; _key5 < _len5; _key5++) {
+	        args[_key5 - 2] = arguments[_key5];
 	      }
 	
 	      if (args.length === 0) {
@@ -278,11 +338,17 @@
 	          var key = args[0];
 	          for (var k in obj) {
 	            if (k == key || key === _state.$any) {
-	              obj[k] = this.update_state.apply(this, [obj[k]].concat(_toConsumableArray(args.slice(1))));
+	              if (!dirty_tree[k]) {
+	                dirty_tree[k] = {};
+	              }
+	              obj[k] = this.update_state.apply(this, [dirty_tree[k], obj[k]].concat(_toConsumableArray(args.slice(1))));
 	            }
 	          }
 	          if (key !== _state.$any && !(key in obj)) {
-	            obj[key] = this.update_state.apply(this, [undefined].concat(_toConsumableArray(args.slice(1))));
+	            if (!dirty_tree[key]) {
+	              dirty_tree[key] = {};
+	            }
+	            obj[key] = this.update_state.apply(this, [dirty_tree[key], undefined].concat(_toConsumableArray(args.slice(1))));
 	          }
 	          obj.__aff_tick = this.patch_tick + 1;
 	          return obj;
@@ -333,10 +399,22 @@
 	        for (var i = 0; i < thunk.args.length; i++) {
 	          var arg = thunk.args[i];
 	          var last_arg = last_thunk.args[i];
-	          if (arg === last_arg && (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__aff_tick === this.patch_tick) {
+	          if (arg instanceof SubState) {
+	            var path_index = 0;
+	            var obj = this.dirty_tree;
+	            while (path_index < arg.path.length && obj && obj[arg.path[path_index]]) {
+	              obj = obj[arg.path[path_index]];
+	              path_index++;
+	            }
+	            if (path_index == arg.path.length) {
+	              // dirty
+	              should_update = true;
+	              break;
+	            }
+	          } else if (arg === last_arg && (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__aff_tick === this.patch_tick) {
 	            should_update = true;
 	            break;
-	          } else if (!(0, _equality.equal)(arg, last_arg)) {
+	          } else if (!equal(arg, last_arg)) {
 	            should_update = true;
 	            break;
 	          }
@@ -422,23 +500,23 @@
 	      } else {
 	        if (node.style && last_node.style) {
 	          // common styles
-	          for (var _key4 in node.style) {
-	            if (node.style[_key4] != last_node.style[_key4]) {
-	              last_element.style[_key4] = node.style[_key4];
+	          for (var _key6 in node.style) {
+	            if (node.style[_key6] != last_node.style[_key6]) {
+	              last_element.style[_key6] = node.style[_key6];
 	            }
 	          }
 	          // delete styles exist in old Node but not in new
 	          if (_typeof(last_node.style) === 'object') {
-	            for (var _key5 in last_node.style) {
-	              if (!(_key5 in node.style)) {
-	                last_element.style[_key5] = '';
+	            for (var _key7 in last_node.style) {
+	              if (!(_key7 in node.style)) {
+	                last_element.style[_key7] = '';
 	              }
 	            }
 	          }
 	        } else if (node.style) {
 	          // new Node only
-	          for (var _key6 in node.style) {
-	            last_element.style[_key6] = node.style[_key6];
+	          for (var _key8 in node.style) {
+	            last_element.style[_key8] = node.style[_key8];
 	          }
 	        } else if (last_node.style) {
 	          // no style in new Node, delete all
@@ -454,72 +532,72 @@
 	      // attributes
 	      if (node.attributes && last_node.attributes) {
 	        // update common attributes
-	        for (var _key7 in node.attributes) {
-	          if (node.attributes[_key7] != last_node.attributes[_key7]) {
-	            var value = node.attributes[_key7];
+	        for (var _key9 in node.attributes) {
+	          if (node.attributes[_key9] != last_node.attributes[_key9]) {
+	            var value = node.attributes[_key9];
 	            var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
 	            if (valueType == 'string' || valueType == 'number') {
-	              last_element.setAttribute(_key7, value);
+	              last_element.setAttribute(_key9, value);
 	            } else if (valueType == 'boolean') {
 	              if (value) {
-	                last_element.setAttribute(_key7, true);
+	                last_element.setAttribute(_key9, true);
 	              } else {
-	                last_element.removeAttribute(_key7);
+	                last_element.removeAttribute(_key9);
 	              }
 	            }
 	          }
 	        }
 	        // delete non-exist attributes
-	        for (var _key8 in last_node.attributes) {
-	          if (!(_key8 in node.attributes)) {
-	            last_element.removeAttribute(_key8);
+	        for (var _key10 in last_node.attributes) {
+	          if (!(_key10 in node.attributes)) {
+	            last_element.removeAttribute(_key10);
 	          }
 	        }
 	      } else if (node.attributes) {
 	        // set new attributes only
-	        for (var _key9 in node.attributes) {
-	          var _value = node.attributes[_key9];
+	        for (var _key11 in node.attributes) {
+	          var _value = node.attributes[_key11];
 	          var _valueType = typeof _value === 'undefined' ? 'undefined' : _typeof(_value);
 	          if (_valueType == 'string' || _valueType == 'number') {
-	            last_element.setAttribute(_key9, _value);
+	            last_element.setAttribute(_key11, _value);
 	          } else if (_valueType == 'boolean') {
 	            if (_value) {
-	              last_element.setAttribute(_key9, true);
+	              last_element.setAttribute(_key11, true);
 	            } else {
-	              last_element.removeAttribute(_key9);
+	              last_element.removeAttribute(_key11);
 	            }
 	          }
 	        }
 	      } else if (last_node.attributes) {
 	        // no attributes in new Node, delete all
-	        for (var _key10 in last_node.attributes) {
-	          last_element.removeAttribute(_key10);
+	        for (var _key12 in last_node.attributes) {
+	          last_element.removeAttribute(_key12);
 	        }
 	      }
 	
 	      // events
 	      // not implementing global event proxy
 	      if (node.events && last_node.events) {
-	        for (var _key11 in node.events) {
+	        for (var _key13 in node.events) {
 	          // set events, bind current node to callback function
 	          // to enable referencing current node
-	          element_set_listener(last_element, _key11, node.events[_key11].bind(node));
+	          element_set_listener(last_element, _key13, node.events[_key13].bind(node));
 	        }
 	        var serial = last_element.__element_serial;
-	        for (var _key12 in element_events[serial]) {
-	          if (!(_key12 in node.events)) {
-	            element_events[serial][_key12] = false;
+	        for (var _key14 in element_events[serial]) {
+	          if (!(_key14 in node.events)) {
+	            element_events[serial][_key14] = false;
 	          }
 	        }
 	      } else if (node.events) {
-	        for (var _key13 in node.events) {
+	        for (var _key15 in node.events) {
 	          // set events, bind current node to callback function
-	          element_set_listener(last_element, _key13, node.events[_key13].bind(node));
+	          element_set_listener(last_element, _key15, node.events[_key15].bind(node));
 	        }
 	      } else if (last_node.events) {
 	        var _serial = last_element.__element_serial;
-	        for (var _key14 in element_events[_serial]) {
-	          element_events[_serial][_key14] = false;
+	        for (var _key16 in element_events[_serial]) {
+	          element_events[_serial][_key16] = false;
 	        }
 	      }
 	
@@ -581,6 +659,48 @@
 	  return App;
 	}();
 	
+	var SubState = function () {
+	  function SubState(app, path) {
+	    _classCallCheck(this, SubState);
+	
+	    this.app = app;
+	    this.path = path;
+	  }
+	
+	  _createClass(SubState, [{
+	    key: 'get',
+	    value: function get() {
+	      return this.app.get(this.path);
+	    }
+	  }, {
+	    key: 'update',
+	    value: function update() {
+	      var _app;
+	
+	      for (var _len6 = arguments.length, args = Array(_len6), _key17 = 0; _key17 < _len6; _key17++) {
+	        args[_key17] = arguments[_key17];
+	      }
+	
+	      return (_app = this.app).update.apply(_app, _toConsumableArray(this.path).concat(args));
+	    }
+	  }, {
+	    key: 'sub',
+	    value: function sub() {
+	      for (var _len7 = arguments.length, args = Array(_len7), _key18 = 0; _key18 < _len7; _key18++) {
+	        args[_key18] = arguments[_key18];
+	      }
+	
+	      var subpath = args;
+	      if (subpath.length == 1 && Array.isArray(subpath[0])) {
+	        subpath = subpath[0];
+	      }
+	      return new SubState(this.app, [].concat(_toConsumableArray(this.path), _toConsumableArray(subpath)));
+	    }
+	  }]);
+	
+	  return SubState;
+	}();
+	
 	var Thunk = function () {
 	  function Thunk() {
 	    _classCallCheck(this, Thunk);
@@ -593,11 +713,6 @@
 	  }
 	
 	  _createClass(Thunk, [{
-	    key: 'setArgs',
-	    value: function setArgs(args) {
-	      this.args = args;
-	    }
-	  }, {
 	    key: 'toElement',
 	    value: function toElement() {
 	      if (!this.element) {
@@ -633,8 +748,8 @@
 	
 	
 	function t() {
-	  for (var _len4 = arguments.length, args = Array(_len4), _key15 = 0; _key15 < _len4; _key15++) {
-	    args[_key15] = arguments[_key15];
+	  for (var _len8 = arguments.length, args = Array(_len8), _key19 = 0; _key19 < _len8; _key19++) {
+	    args[_key19] = arguments[_key19];
 	  }
 	
 	  if (args.length == 0) {
@@ -648,12 +763,12 @@
 	      // named thunk
 	      thunk.name = args[0];
 	      thunk.func = args[1];
-	      thunk.setArgs(args.slice(2));
+	      thunk.args = args.slice(2);
 	      break;
 	
 	    case 'function':
 	      thunk.func = args[0];
-	      thunk.setArgs(args.slice(1));
+	      thunk.args = args.slice(1);
 	      thunk.name = thunk.func.name;
 	      break;
 	  }
@@ -663,8 +778,8 @@
 	
 	// element helper
 	function e() {
-	  for (var _len5 = arguments.length, args = Array(_len5), _key16 = 0; _key16 < _len5; _key16++) {
-	    args[_key16] = arguments[_key16];
+	  for (var _len9 = arguments.length, args = Array(_len9), _key20 = 0; _key20 < _len9; _key20++) {
+	    args[_key20] = arguments[_key20];
 	  }
 	
 	  if (args.length === 0) {
@@ -675,7 +790,7 @@
 	  if (typeof args[0] === 'function') {
 	    var thunk = new Thunk();
 	    thunk.func = args[0];
-	    thunk.setArgs(args.slice(1));
+	    thunk.args = args.slice(1);
 	    // set thunk name from function, may be undefined
 	    thunk.name = thunk.func.name;
 	    return thunk;
@@ -941,25 +1056,25 @@
 	        }
 	      }
 	      if (this.attributes !== null) {
-	        for (var _key17 in this.attributes) {
-	          var value = this.attributes[_key17];
+	        for (var _key21 in this.attributes) {
+	          var value = this.attributes[_key21];
 	          var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
 	          if (valueType == 'string' || valueType == 'number') {
-	            element.setAttribute(_key17, value);
+	            element.setAttribute(_key21, value);
 	          } else if (valueType == 'boolean') {
 	            if (value) {
-	              element.setAttribute(_key17, true);
+	              element.setAttribute(_key21, true);
 	            } else {
-	              element.removeAttribute(_key17);
+	              element.removeAttribute(_key21);
 	            }
 	          }
 	        }
 	      }
 	      if (this.events !== null) {
-	        for (var _key18 in this.events) {
+	        for (var _key22 in this.events) {
 	          // set event callback, bind current Node to callback
 	          // constructor must not be arrow function to get proper 'this'
-	          element_set_listener(element, _key18, this.events[_key18].bind(this));
+	          element_set_listener(element, _key22, this.events[_key22].bind(this));
 	        }
 	      }
 	      this.element = element;
@@ -1008,6 +1123,37 @@
 	    event_set[ev_type] = fn;
 	  };
 	}();
+	
+	function equal(a, b) {
+	  if (a === b) {
+	    return true;
+	  }
+	  var type_a = typeof a === 'undefined' ? 'undefined' : _typeof(a);
+	  var type_b = typeof b === 'undefined' ? 'undefined' : _typeof(b);
+	  if (type_a !== type_b) {
+	    return false;
+	  }
+	  if (type_a === 'object') {
+	    if (a instanceof SubState && b instanceof SubState) {
+	      return equal(a.get(), b.get());
+	    }
+	    // deep compare
+	    var keys_a = Object.keys(a);
+	    var keys_b = Object.keys(b);
+	    if (keys_a.length != keys_b.length) {
+	      return false;
+	    }
+	    for (var key in a) {
+	      if (!equal(a[key], b[key])) {
+	        return false;
+	      }
+	    }
+	    return true;
+	  } else if (type_a === 'function') {
+	    return a.name === b.name;
+	  }
+	  return false;
+	}
 
 /***/ },
 /* 3 */
@@ -1050,14 +1196,14 @@
 	    args: [spec],
 	    apply: function apply(obj, app) {
 	      if (Array.isArray(spec)) {
-	        return app.update_state.apply(app, [obj].concat(_toConsumableArray(spec)));
+	        return app.update_state.apply(app, [app.dirty_tree, obj].concat(_toConsumableArray(spec)));
 	      }
 	      for (var key in spec) {
 	        var o2 = spec[key];
 	        if ((typeof o2 === 'undefined' ? 'undefined' : _typeof(o2)) == 'object' && !Array.isArray(o2) && !o2.__is_op) {
-	          obj = app.update_state(obj, key, $merge(o2));
+	          obj = app.update_state(app.dirty_tree, obj, key, $merge(o2));
 	        } else {
-	          obj = app.update_state(obj, key, o2);
+	          obj = app.update_state(app.dirty_tree, obj, key, o2);
 	        }
 	      }
 	      return obj;
@@ -1177,62 +1323,41 @@
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	exports.equal = equal;
-	function equal(a, b) {
-	  if (a === b) {
-	    return true;
-	  }
-	  var type_a = typeof a === 'undefined' ? 'undefined' : _typeof(a);
-	  var type_b = typeof b === 'undefined' ? 'undefined' : _typeof(b);
-	  if (type_a !== type_b) {
-	    return false;
-	  }
-	  if (type_a === 'object') {
-	    // deep compare
-	    var keys_a = Object.keys(a);
-	    var keys_b = Object.keys(b);
-	    if (keys_a.length != keys_b.length) {
-	      return false;
-	    }
-	    for (var key in a) {
-	      if (!equal(a[key], b[key])) {
-	        return false;
-	      }
-	    }
-	    return true;
-	  } else if (type_a === 'function') {
-	    return a.name === b.name;
-	  }
-	  return false;
-	}
-
-/***/ },
-/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.setBeforeThunkCallFunc = exports.setAfterThunkCallFunc = exports.e = exports.t = undefined;
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var _app = __webpack_require__(2);
 	
-	var t = exports.t = _app.t;
-	var e = exports.e = _app.e;
-	var setAfterThunkCallFunc = exports.setAfterThunkCallFunc = _app.setAfterThunkCallFunc;
-	var setBeforeThunkCallFunc = exports.setBeforeThunkCallFunc = _app.setBeforeThunkCallFunc;
+	var helpers = ['a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'bgsound', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'command', 'content', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'head', 'header', 'hgroup', 'hr', 'html', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'i', 'iframe', 'image', 'img', 'input', 'ins', 'isindex', 'kbd', 'keygen', 'label', 'legend', 'li', 'link', 'listing', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meta', 'meter', 'multicol', 'nav', 'nobr', 'noembed', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'plaintext', 'pre', 'progress', 'q', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'script', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'].reduce(function (helpers, tag) {
+	  helpers[tag] = function () {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    return _app.e.apply(undefined, [tag].concat(args));
+	  };
+	  helpers[tag.charAt(0).toUpperCase() + tag.slice(1)] = helpers[tag];
+	  helpers[tag.toUpperCase()] = helpers[tag];
+	  return helpers;
+	}, {});
+	
+	module.exports = _extends({}, helpers, {
+	
+	  none: (0, _app.e)('div', {
+	    style: {
+	      display: 'none'
+	    }
+	  }),
+	
+	  clear: (0, _app.e)('div', {
+	    style: {
+	      clear: 'both'
+	    }
+	  })
+	});
 
 /***/ }
 /******/ ]);
