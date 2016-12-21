@@ -311,8 +311,6 @@
 	  }, {
 	    key: 'patch',
 	    value: function patch(last_element, node, last_node) {
-	      var _this = this;
-	
 	      // thunk
 	      var last_thunk = void 0;
 	      if (last_node && last_node instanceof Thunk) {
@@ -322,26 +320,36 @@
 	      var thunk = void 0;
 	      if (node instanceof Thunk) {
 	        thunk = node;
-	        if (last_thunk && thunk.name == last_thunk.name && thunk.args.length === last_thunk.args.length && thunk.args.reduce(function (acc, cur, i) {
-	          var last = last_thunk.args[i];
-	          if (cur === last && cur.hasOwnProperty('__aff_tick')) {
-	            // object belong to state tree
-	            if (cur.__aff_tick === _this.patch_tick) {
-	              // should update
-	              return acc && false;
-	            } else {
-	              // not changed
-	              return acc && true;
-	            }
+	      }
+	
+	      var should_update = false;
+	      if (!thunk || !last_thunk) {
+	        should_update = true;
+	      } else if (thunk.name != last_thunk.name) {
+	        should_update = true;
+	      } else if (thunk.args.length != last_thunk.args.length) {
+	        should_update = true;
+	      } else {
+	        for (var i = 0; i < thunk.args.length; i++) {
+	          var arg = thunk.args[i];
+	          var last_arg = last_thunk.args[i];
+	          if (arg === last_arg && (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__aff_tick === this.patch_tick) {
+	            should_update = true;
+	            break;
+	          } else if (!(0, _equality.equal)(arg, last_arg)) {
+	            should_update = true;
+	            break;
 	          }
-	          return acc && (0, _equality.equal)(cur, last);
-	        }, true)) {
+	        }
+	      }
+	
+	      if (thunk) {
+	        if (last_thunk && !should_update) {
 	          // reuse node
 	          thunk.node = last_thunk.node;
 	          // reuse element
 	          thunk.element = last_thunk.element;
 	        }
-	        // get node of thunk
 	        node = thunk.getNode();
 	      }
 	
@@ -520,31 +528,31 @@
 	        // patch common amount of children
 	        var common_length = Math.min(node.children.length, last_node.children.length);
 	        var child_elements = last_element.childNodes;
-	        for (var i = 0; i < common_length; i++) {
+	        for (var _i = 0; _i < common_length; _i++) {
 	          // recursive patch
-	          this.patch(child_elements[i], node.children[i], last_node.children[i]);
+	          this.patch(child_elements[_i], node.children[_i], last_node.children[_i]);
 	        }
 	        // insert new children
-	        for (var _i = common_length, l = node.children.length; _i < l; _i++) {
-	          if (!node.children[_i] || !node.children[_i].toElement) {
-	            last_element.appendChild(warning('RENDER ERROR: cannot render ' + node.children[_i]).toElement());
-	            console.warn('cannot render', node.children[_i]);
+	        for (var _i2 = common_length, l = node.children.length; _i2 < l; _i2++) {
+	          if (!node.children[_i2] || !node.children[_i2].toElement) {
+	            last_element.appendChild(warning('RENDER ERROR: cannot render ' + node.children[_i2]).toElement());
+	            console.warn('cannot render', node.children[_i2]);
 	          } else {
-	            last_element.appendChild(node.children[_i].toElement());
+	            last_element.appendChild(node.children[_i2].toElement());
 	          }
 	        }
 	        // delete
-	        for (var _i2 = common_length, _l = last_node.children.length; _i2 < _l; _i2++) {
+	        for (var _i3 = common_length, _l = last_node.children.length; _i3 < _l; _i3++) {
 	          last_element.removeChild(last_element.childNodes[common_length]);
 	        }
 	      } else if (node.children) {
 	        // insert only
-	        for (var _i3 = 0, _l2 = node.children.length; _i3 < _l2; _i3++) {
-	          if (!node.children[_i3] || !node.children[_i3].toElement) {
-	            last_element.appendChild(warning('RENDER ERROR: cannot render ' + node.children[_i3]).toElement());
-	            console.warn('cannot render', node.children[_i3]);
+	        for (var _i4 = 0, _l2 = node.children.length; _i4 < _l2; _i4++) {
+	          if (!node.children[_i4] || !node.children[_i4].toElement) {
+	            last_element.appendChild(warning('RENDER ERROR: cannot render ' + node.children[_i4]).toElement());
+	            console.warn('cannot render', node.children[_i4]);
 	          } else {
-	            last_element.appendChild(node.children[_i3].toElement());
+	            last_element.appendChild(node.children[_i4].toElement());
 	          }
 	        }
 	      } else if (last_node.children) {
@@ -1181,14 +1189,15 @@
 	
 	exports.equal = equal;
 	function equal(a, b) {
+	  if (a === b) {
+	    return true;
+	  }
 	  var type_a = typeof a === 'undefined' ? 'undefined' : _typeof(a);
 	  var type_b = typeof b === 'undefined' ? 'undefined' : _typeof(b);
 	  if (type_a !== type_b) {
 	    return false;
 	  }
-	  if (type_a === 'undefined') {
-	    return true;
-	  } else if (type_a === 'object') {
+	  if (type_a === 'object') {
 	    // deep compare
 	    var keys_a = Object.keys(a);
 	    var keys_b = Object.keys(b);
@@ -1203,9 +1212,8 @@
 	    return true;
 	  } else if (type_a === 'function') {
 	    return a.name === b.name;
-	  } else {
-	    return a === b;
 	  }
+	  return false;
 	}
 
 /***/ },
