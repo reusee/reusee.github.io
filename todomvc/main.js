@@ -1,157 +1,169 @@
 import {
-  App, t,
+  App, t, on, css, $, updater,
   section, header, footer, h1, p, a, div, span,
-  input, none, ul, li, button, strong, label,
-  $any, $push, $merge, $del_at, $filter,
+  input, ul, li, none, button, strong, label, checkbox,
+  $any, $push, $splice, $filter, $merge,
+  DebugPanel,
 } from '../../index'
 
-let init_state = JSON.parse(window.localStorage.getItem('todos')) || {
-  todos: [
-    {
-      completed: false,
-      content: 'foo',
+const saved = JSON.parse(window.localStorage.getItem('todomvc'));
+
+const init_state = {
+  todos: saved.todos || [],
+  filter: saved.filter || 'All',
+
+  Header: {
+    updateTodos: updater('todos'),
+  },
+
+  TodoList: {
+    $ref: ['todos', 'filter'],
+
+    Todo: {
+      updateTodos: updater('todos'),
     },
-  ],
-  filter: 'All',
+  },
+
+  Footer: {
+    $ref: ['todos', 'filter'],
+    updateTodos: updater('todos'),
+  },
 };
 
-class Application extends App {
-  afterUpdate(state, ...args) {
-    window.localStorage.setItem('todos', JSON.stringify(state));
-  }
-
-  update(...args) {
-    console.time('update ' + args);
-    super.update(...args);
-    console.timeEnd('update ' + args);
-  }
-}
-
-let app = new Application(
+const app = new App(
   document.getElementById('app'),
+  on('afterUpdate: save to local storage', (state, ...args) => {
+    window.localStorage.setItem('todomvc', JSON.stringify({
+      todos: state.todos,
+      filter: state.filter,
+    }));
+  }),
   init_state,
 );
 
-function Header() {
-  return header('.header', [
-    h1('todos'),
-    input('.new-todo', {
+const Header = (state) => header($`.header`,
+  h1('todos'),
+  input($`.new-todo`, 
+    {
       placeholder: "What needs to be done?",
       autofocus: 'autofocus',
-      onkeypress(e) {
-        if (e.keyCode == 13 && this.element.value.length > 0) {
-          app.update('todos', $push({
-            completed: false,
-            content: this.element.value,
-          }));
-          this.element.value = '';
-        }
-      },
+    }, 
+    on('keypress', function(e) {
+      if (e.keyCode != 13 || this.element.value.length == 0) {
+        return
+      }
+      state.updateTodos($push({
+        completed: false,
+        content: this.element.value,
+      }));
+      this.element.value = '';
     }),
-  ]);
-}
+  ),
+);
 
-function Main(state) {
-  return div([
-    section('.todoapp', [
-      t(Header),
+const Todo = (state, todo, i) => li(
+  { 
+    classList: {
+      completed: todo.completed,
+      editing: todo.editing,
+    },
+  },
+  div($`.view`,
+    checkbox($`.toggle`, 
+      {
+        checked: todo.completed,
+      },
+      on('click', function() {
+        state.updateTodos(i, 'completed', this.element.checked);
+      }),
+    ),
+    label(todo.content, on('dblclick', () => {
+      state.updateTodos(i, 'editing', true);
+    })),
+    button($`.destroy`, on('click', () => {
+      state.updateTodos($splice(i, 1));
+    })),
+  ),
+  input($`.edit`, 
+    {
+      value: todo.content,
+    },
+    on('keypress', function(e) {
+      if (e.keyCode == 13) {
+        state.updateTodos(i, $merge({
+          content: this.element.value,
+          editing: false,
+        }));
+      }
+    }),
+  ),
+);
 
-      state.todos.length > 0 ? section('.main', [
-        input('.toggle-all', {
-          type: 'checkbox',
-          onclick() {
-            let all_completed = app.state.todos.reduce((b, c) => b && c.completed, true);
-            app.update('todos', $any, 'completed', all_completed ? false : true);
-          },
-        }),
-        label({
-          for: 'toggle-all',
-        }, 'Mark all as complete'),
-        t(TodoList, state.todos, state.filter),
-      ]) : none,
-
-      state.todos.length > 0 ? t(Footer, state.todos, state.filter) : none,
-    ]),
-    Info,
-  ]);
-}
-
-function TodoList(todos, filter) {
-  return ul('.todo-list', todos.map((todo, i) =>  {
-    if (filter == 'Active' && todo.completed) {
+const TodoList = (state) => ul($`.todo-list`, 
+  state.todos.map((todo, i) => {
+    if (state.filter == 'Active' && todo.completed) {
       return none;
-    } else if (filter == 'Completed' && !todo.completed) {
+    } else if (state.filter == 'Completed' && !todo.completed) {
       return none;
     }
-    return li({
-      class: {
-        completed: todo.completed,
-        editing: todo.editing,
-      },
-    }, [
-      div('.view', [
-        input('.toggle', {
-          type: 'checkbox',
-          checked: todo.completed ? 'checked' : false,
-          onclick() {
-            app.update('todos', i, 'completed', this.element.checked);
-          },
-        }),
-        label({
-          ondblclick() {
-            app.update('todos', i, 'editing', true);
-          },
-        }, todo.content),
-        button('.destroy', {
-          onclick() {
-            app.update('todos', $del_at(i));
-          },
-        }),
-      ]),
-      input('.edit', {
-        value: todo.content,
-        onkeypress(e) {
-          if (e.keyCode == 13) {
-            app.update('todos', i, $merge({
-              'content': this.element.value,
-              'editing': false,
-            }));
-          }
-        },
-      }),
-    ]);
-  }));
-}
+    return t(Todo, state.Todo, todo, i);
+  }),
+);
 
-function Footer(todos, filter) {
-  return footer('.footer', [
-    span('.todo-count', [
-      strong(todos.reduce((n, c) => {
-        return n + (c.completed ? 0 : 1);
-      }, 0)),
-      ' item left',
-    ]),
-    ul('.filters', [
-      ['#/', 'All'],
-      ['#/active', 'Active'],
-      ['#/completed', 'Completed'],
-    ].map(info => li([
-      a({
-        style: { cursor: 'pointer' },
-        class: filter == info[1] ? 'selected' : '',
-        onclick() {
-          window.location.hash = info[0];
-        },
-      }, info[1]),
-    ]))),
-    todos.reduce((b, c) => b || c.completed, false) ? button({
-      class: 'clear-completed',
-      onclick() {
-        app.update('todos', $filter(todo => !todo.completed));
-      },
-    }, 'Clear completed') : none,
-  ]);
-}
+const Footer = (state) => footer($`.footer`,
+  span($`.todo-count`,
+    strong(state.todos.reduce((n, c) => {
+      return n + (c.completed ? 0 : 1);
+    }, 0)),
+    ' item left',
+  ),
+  ul($`.filters`, [
+    ['#/', 'All'],
+    ['#/active', 'Active'],
+    ['#/completed', 'Completed'],
+  ].map(info => li(
+    a(info[1], {
+      style: `cursor: pointer`,
+      classList: state.filter == info[1] ? 'selected' : '', 
+    }, on('click', () => { 
+      window.location.hash = info[0];
+    })),
+  ))),
+  state.todos.reduce((b, c) => b || c.completed, false) ? button({
+    classList: 'clear-completed',
+    onclick() {
+      state.updateTodos($filter(todo => !todo.completed));
+    },
+  }, 'Clear completed') : none,
+);
+
+const Info = footer($`.info`,
+  p('Double-click to edit a todo'),
+  p('Created by ',
+    a({ href: 'http://todomvc.com' }, 'reusee@qq.com'),
+  ),
+);
+
+const Main = (state) => div(
+  section($`.todoapp`,
+    t(Header, state.Header),
+    state.todos.length > 0 ? section($`.main`,
+      checkbox($`.toggle-all`, on('click', () => {
+        let all_completed = state.todos.reduce((b, c) => b && c.completed, true);
+        state.$update('todos', $any, 'completed', all_completed ? false : true);
+      })),
+      label({
+        for: 'toggle-all',
+      }, 'Mark all as complete'),
+      t(TodoList, state.TodoList),
+    ) : none,
+    state.todos.length > 0 ? t(Footer, state.Footer) : none,
+  ),
+  Info,
+  DebugPanel(app),
+);
+
+app.init(Main);
 
 window.onhashchange = () => {
   let hash = window.location.hash;
@@ -163,15 +175,5 @@ window.onhashchange = () => {
     app.update('filter', 'All');
   }
 };
-
-let Info = footer('.info', [
-  p('Double-click to edit a todo'),
-  p([
-    'Created by ',
-    a({ href: 'http://todomvc.com' }, 'reusee@qq.com'),
-  ]),
-]);
-
-app.init(Main);
 
 window.onhashchange();
