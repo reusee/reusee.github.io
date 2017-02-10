@@ -275,6 +275,7 @@
 	      nativeNodeCreate: 0,
 	      nodeCacheHit: 0
 	    };
+	    this.jobs = [];
 	    this.events = {};
 	    this.init.apply(this, arguments);
 	  }
@@ -357,6 +358,7 @@
 	            refInfos = ref;
 	          }
 	          delete obj['$ref'];
+	          delete obj['$use'];
 	        } else {
 	          throw ['bad ref', ref];
 	        }
@@ -394,7 +396,7 @@
 	        var name = refInfos[_key3];
 	        // search in scopes
 	        var found = false;
-	        for (var _i2 = 0; _i2 < scopes.length; _i2++) {
+	        for (var _i2 = scopes.length - 1; _i2 >= 0; _i2--) {
 	          var _bindings = scopes[_i2];
 	          if (name in _bindings) {
 	            // found
@@ -447,7 +449,7 @@
 	            var updateArgs = subState.args.slice(1);
 	            // search update path
 	            var found = false;
-	            for (var _i3 = 0; _i3 < scopes.length; _i3++) {
+	            for (var _i3 = scopes.length - 1; _i3 >= 0; _i3--) {
 	              var _bindings2 = scopes[_i3];
 	              if (name in _bindings2) {
 	                var _ret2 = function () {
@@ -544,9 +546,20 @@
 	        this.updated = false;
 	        this.updateCount = 0;
 	        this._state.beforePatch();
-	        var result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
-	        this.element = result[0];
-	        this.node = result[1];
+	        if (!this.node) {
+	          // first render
+	          this.node = this.nodeFunc(this.state, this);
+	          var elem = this.node.toElement(this);
+	          if (this.element.parentNode) {
+	            this.element.parentNode.insertBefore(elem, this.element);
+	            this.element.parentNode.removeChild(this.element);
+	          }
+	          this.element = elem;
+	        } else {
+	          var result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
+	          this.element = result[0];
+	          this.node = result[1];
+	        }
 	        while (this.updated) {
 	          if (this.updateCount > 4096) {
 	            // infinite loop
@@ -558,6 +571,12 @@
 	          var _result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
 	          this.element = _result[0];
 	          this.node = _result[1];
+	        }
+	        if (this.jobs.length > 0) {
+	          for (var _i4 = this.jobs.length - 1; _i4 >= 0; _i4--) {
+	            this.jobs[_i4]();
+	          }
+	          this.jobs = [];
 	        }
 	        this.patching = false;
 	        this.updateCount = 0;
@@ -596,9 +615,16 @@
 	  }, {
 	    key: 'patch',
 	    value: function patch(lastElement, node, lastNode) {
+	      if (!lastElement) {
+	        throw ['bad last element'];
+	      }
+	      if (!lastNode) {
+	        throw ['bad last node'];
+	      }
+	
 	      // thunk
 	      var lastThunk = void 0;
-	      if (lastNode && lastNode instanceof _nodes.Thunk) {
+	      if (lastNode instanceof _nodes.Thunk) {
 	        lastThunk = lastNode;
 	        lastNode = lastThunk.node;
 	      }
@@ -639,9 +665,7 @@
 	
 	      // check if patchable
 	      var patchable = true;
-	      if (!lastNode) {
-	        patchable = false;
-	      } else if (node.constructor != lastNode.constructor) {
+	      if (node.constructor != lastNode.constructor) {
 	        patchable = false;
 	      } else if (node instanceof _nodes.ElementNode && node.tag != lastNode.tag) {
 	        patchable = false;
@@ -649,14 +673,12 @@
 	      if (!patchable) {
 	        var element = node.toElement(this);
 	        // insert new then remove old
-	        if (lastElement && lastElement.parentNode) {
+	        if (lastElement.parentNode) {
 	          lastElement.parentNode.insertBefore(element, lastElement);
 	          lastElement.parentNode.removeChild(lastElement);
 	        }
 	        // cache lastElement
-	        if (lastNode) {
-	          this.cacheNode(lastElement, lastNode);
-	        }
+	        this.cacheNode(lastElement, lastNode);
 	
 	        return [element, node];
 	      }
@@ -686,175 +708,12 @@
 	        return [lastElement, node];
 	      }
 	
-	      // innerHTML
-	      if (node.innerHTML != lastNode.innerHTML) {
-	        lastElement.innerHTML = node.innerHTML;
-	      }
-	
-	      // id
-	      if (node.id != lastNode.id) {
-	        lastElement.id = node.id;
-	      }
-	
-	      // styles
-	      var styleType = _typeof(node.style);
-	      var lastStyleType = _typeof(lastNode.style);
-	      // different type, no diff
-	      if (styleType !== lastStyleType) {
-	        lastElement.style = undefined;
-	        if (styleType === 'string') {
-	          lastElement.style = node.style;
-	        } else if (styleType === 'object' && node.style !== null) {
-	          for (var key in node.style) {
-	            lastElement.style[key] = node.style[key];
-	          }
-	        }
-	      }
-	      // diff object
-	      else if (styleType === 'object') {
-	          if (node.style !== null) {
-	            for (var _key11 in node.style) {
-	              var updateStyle = false;
-	              if (!lastNode.style) {
-	                updateStyle = true;
-	              } else if (node.style[_key11] != lastNode.style[_key11]) {
-	                updateStyle = true;
-	              }
-	              if (updateStyle) {
-	                lastElement.style[_key11] = node.style[_key11];
-	              }
-	            }
-	          }
-	          if (lastNode.style !== null) {
-	            for (var _key12 in lastNode.style) {
-	              var clearStyle = false;
-	              if (!node.style) {
-	                clearStyle = true;
-	              } else if (!(_key12 in node.style)) {
-	                clearStyle = true;
-	              }
-	              if (clearStyle) {
-	                lastElement.style[_key12] = '';
-	              }
-	            }
-	          }
-	        }
-	        // string, compare
-	        else if (styleType === 'string') {
-	            if (node.style !== lastNode.style) {
-	              lastElement.style = node.style;
-	            }
-	          }
-	
-	      // class
-	      for (var _key13 in node.classList) {
-	        // should update
-	        var updateClass = false;
-	        if (!lastNode.classList) {
-	          updateClass = true;
-	        } else if (node.classList[_key13] != lastNode.classList[_key13]) {
-	          updateClass = true;
-	        }
-	        if (updateClass) {
-	          if (node.classList[_key13]) {
-	            lastElement.classList.add(_key13);
-	          } else {
-	            lastElement.classList.remove(_key13);
-	          }
-	        }
-	      }
-	      for (var _key14 in lastNode.classList) {
-	        var deleteClass = false;
-	        if (!node.classList) {
-	          deleteClass = true;
-	        } else if (!(_key14 in node.classList)) {
-	          deleteClass = true;
-	        }
-	        if (deleteClass) {
-	          lastElement.classList.remove(_key14);
-	        }
-	      }
-	
-	      // attributes
-	
-	      var _loop = function _loop(_key15) {
-	        var updateAttr = false;
-	        if (!lastNode.attributes) {
-	          updateAttr = true;
-	        } else if (node.attributes[_key15] != lastNode.attributes[_key15]) {
-	          updateAttr = true;
-	        }
-	        if (updateAttr) {
-	          (function () {
-	            var value = node.attributes[_key15];
-	            var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
-	            var isStringOrNumber = false;
-	            if (valueType === 'string') {
-	              isStringOrNumber = true;
-	            } else if (valueType === 'number') {
-	              isStringOrNumber = true;
-	            }
-	            if (isStringOrNumber) {
-	              lastElement.setAttribute(_key15, value);
-	              lastElement[_key15] = value;
-	            } else if (valueType == 'boolean') {
-	              var set = function set() {
-	                if (value) {
-	                  lastElement.setAttribute(_key15, true);
-	                  lastElement[_key15] = true;
-	                } else {
-	                  lastElement.removeAttribute(_key15);
-	                  lastElement[_key15] = false;
-	                }
-	              };
-	              if (lastElement.tagName === 'INPUT' && lastElement.type == 'checkbox') {
-	                setTimeout(set, 0);
-	              } else {
-	                set();
-	              }
-	            }
-	          })();
-	        }
-	      };
-	
-	      for (var _key15 in node.attributes) {
-	        _loop(_key15);
-	      }
-	      for (var _key16 in lastNode.attributes) {
-	        var removeAttr = false;
-	        if (!node.attributes) {
-	          removeAttr = true;
-	        } else if (!(_key16 in node.attributes)) {
-	          removeAttr = true;
-	        }
-	        if (removeAttr) {
-	          lastElement.removeAttribute(_key16);
-	          lastElement[_key16] = undefined;
-	        }
-	      }
-	
-	      // events
-	      var eventKeys = {};
-	      for (var _key17 in node.events) {
-	        var k = (0, _event.elementSetEvent)(lastElement, _key17, node.events[_key17].bind(node));
-	        eventKeys[k] = true;
-	      }
-	      if (lastElement.__aff_events) {
-	        for (var type in lastElement.__aff_events) {
-	          for (var subtype in lastElement.__aff_events[type]) {
-	            if (!(type + ':' + subtype in eventKeys)) {
-	              delete lastElement.__aff_events[type][subtype];
-	            }
-	          }
-	        }
-	      }
-	
 	      // children
 	      var childElements = lastElement.childNodes;
 	      var childLen = node.children ? node.children.length : 0;
 	      for (var i = 0; i < childLen; i++) {
 	        var child = node.children[i];
-	        if (child.key && lastNode && lastNode.children && lastNode.children[i] && lastNode.children[i].key != child.key) {
+	        if (child.key && lastNode.children && lastNode.children[i] && lastNode.children[i].key != child.key) {
 	          // keyed
 	          // search for same key
 	          var found = false;
@@ -869,7 +728,7 @@
 	              }
 	              childElements = lastElement.childNodes;
 	              // patch
-	              var result = this.patch(childElements[i], child, lastNode.children[i]);
+	              this.patch(childElements[i], child, lastNode.children[i]);
 	              break;
 	            }
 	          }
@@ -882,25 +741,192 @@
 	          }
 	        } else {
 	          // not keyed
-	          var _result2 = this.patch(childElements[i], child, lastNode && lastNode.children ? lastNode.children[i] : null);
-	          var _elem2 = _result2[0];
 	          if (!childElements[i]) {
+	            var _elem2 = child.toElement(this);
 	            lastElement.appendChild(_elem2);
+	          } else {
+	            this.patch(childElements[i], child, lastNode.children[i]);
 	          }
 	        }
 	      }
-	      var lastChildLen = lastNode && lastNode.children ? lastNode.children.length : 0;
-	      for (var _i4 = childLen; _i4 < lastChildLen; _i4++) {
+	      var lastChildLen = lastNode.children ? lastNode.children.length : 0;
+	      for (var _i5 = childLen; _i5 < lastChildLen; _i5++) {
 	        var _elem3 = lastElement.removeChild(lastElement.childNodes[childLen]);
-	        this.cacheNode(_elem3, lastNode.children[_i4]);
+	        this.cacheNode(_elem3, lastNode.children[_i5]);
 	      }
 	
-	      // hook
-	      if (node.hooks && node.hooks.patched) {
-	        node.hooks.patched.forEach(function (fn) {
-	          return fn(lastElement);
-	        });
-	      }
+	      this.jobs.push(function () {
+	
+	        // innerHTML
+	        if (node.innerHTML != lastNode.innerHTML) {
+	          lastElement.innerHTML = node.innerHTML;
+	        }
+	
+	        // attributes
+	
+	        var _loop = function _loop(key) {
+	          var updateAttr = false;
+	          if (!lastNode.attributes) {
+	            updateAttr = true;
+	          } else if (node.attributes[key] != lastNode.attributes[key]) {
+	            updateAttr = true;
+	          }
+	          if (updateAttr) {
+	            (function () {
+	              var value = node.attributes[key];
+	              var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+	              var isStringOrNumber = false;
+	              if (valueType === 'string') {
+	                isStringOrNumber = true;
+	              } else if (valueType === 'number') {
+	                isStringOrNumber = true;
+	              }
+	              if (isStringOrNumber) {
+	                lastElement.setAttribute(key, value);
+	                lastElement[key] = value;
+	              } else if (valueType == 'boolean') {
+	                var set = function set() {
+	                  if (value) {
+	                    lastElement.setAttribute(key, true);
+	                    lastElement[key] = true;
+	                  } else {
+	                    lastElement.removeAttribute(key);
+	                    lastElement[key] = false;
+	                  }
+	                };
+	                if (lastElement.tagName === 'INPUT' && lastElement.type == 'checkbox') {
+	                  setTimeout(set, 0);
+	                } else {
+	                  set();
+	                }
+	              }
+	            })();
+	          }
+	        };
+	
+	        for (var key in node.attributes) {
+	          _loop(key);
+	        }
+	        for (var key in lastNode.attributes) {
+	          var removeAttr = false;
+	          if (!node.attributes) {
+	            removeAttr = true;
+	          } else if (!(key in node.attributes)) {
+	            removeAttr = true;
+	          }
+	          if (removeAttr) {
+	            lastElement.removeAttribute(key);
+	            lastElement[key] = undefined;
+	          }
+	        }
+	
+	        // events
+	        var eventKeys = {};
+	        for (var _key11 in node.events) {
+	          var k = (0, _event.elementSetEvent)(lastElement, _key11, node.events[_key11].bind(node));
+	          eventKeys[k] = true;
+	        }
+	        if (lastElement.__aff_events) {
+	          for (var type in lastElement.__aff_events) {
+	            for (var subtype in lastElement.__aff_events[type]) {
+	              if (!(type + ':' + subtype in eventKeys)) {
+	                delete lastElement.__aff_events[type][subtype];
+	              }
+	            }
+	          }
+	        }
+	
+	        // id
+	        if (node.id != lastNode.id) {
+	          lastElement.id = node.id;
+	        }
+	
+	        // class
+	        for (var _key12 in node.classList) {
+	          // should update
+	          var updateClass = false;
+	          if (!lastNode.classList) {
+	            updateClass = true;
+	          } else if (node.classList[_key12] != lastNode.classList[_key12]) {
+	            updateClass = true;
+	          }
+	          if (updateClass) {
+	            if (node.classList[_key12]) {
+	              lastElement.classList.add(_key12);
+	            } else {
+	              lastElement.classList.remove(_key12);
+	            }
+	          }
+	        }
+	        for (var _key13 in lastNode.classList) {
+	          var deleteClass = false;
+	          if (!node.classList) {
+	            deleteClass = true;
+	          } else if (!(_key13 in node.classList)) {
+	            deleteClass = true;
+	          }
+	          if (deleteClass) {
+	            lastElement.classList.remove(_key13);
+	          }
+	        }
+	
+	        // styles
+	        var styleType = _typeof(node.style);
+	        var lastStyleType = _typeof(lastNode.style);
+	        // different type, no diff
+	        if (styleType !== lastStyleType) {
+	          lastElement.style = undefined;
+	          if (styleType === 'string') {
+	            lastElement.style = node.style;
+	          } else if (styleType === 'object' && node.style !== null) {
+	            for (var _key14 in node.style) {
+	              lastElement.style[_key14] = node.style[_key14];
+	            }
+	          }
+	        }
+	        // diff object
+	        else if (styleType === 'object') {
+	            if (node.style !== null) {
+	              for (var _key15 in node.style) {
+	                var updateStyle = false;
+	                if (!lastNode.style) {
+	                  updateStyle = true;
+	                } else if (node.style[_key15] != lastNode.style[_key15]) {
+	                  updateStyle = true;
+	                }
+	                if (updateStyle) {
+	                  lastElement.style[_key15] = node.style[_key15];
+	                }
+	              }
+	            }
+	            if (lastNode.style !== null) {
+	              for (var _key16 in lastNode.style) {
+	                var clearStyle = false;
+	                if (!node.style) {
+	                  clearStyle = true;
+	                } else if (!(_key16 in node.style)) {
+	                  clearStyle = true;
+	                }
+	                if (clearStyle) {
+	                  lastElement.style[_key16] = '';
+	                }
+	              }
+	            }
+	          }
+	          // string, compare
+	          else if (styleType === 'string') {
+	              if (node.style !== lastNode.style) {
+	                lastElement.style = node.style;
+	              }
+	            }
+	
+	        // hook
+	        if (node.hooks && node.hooks.patched) {
+	          node.hooks.patched.forEach(function (fn) {
+	            return fn(lastElement);
+	          });
+	        }
+	      }); // push job
 	
 	      return [lastElement, node];
 	    }
@@ -1086,13 +1112,14 @@
 	    }
 	  }, {
 	    key: 'updateState',
-	    value: function updateState(basePath, obj) {
+	    value: function updateState(statePath, object) {
 	      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
 	        args[_key2 - 2] = arguments[_key2];
 	      }
 	
 	      var _this2 = this;
 	
+	      var obj = object;
 	      if (args.length === 0) {
 	        return obj;
 	      } else if (args.length === 1) {
@@ -1111,7 +1138,7 @@
 	          // re-setup arrays conservatively
 	          forceSetup = true;
 	        }
-	        this.setupState(ret, basePath, forceSetup);
+	        this.setupState(ret, statePath, forceSetup);
 	        if ((typeof ret === 'undefined' ? 'undefined' : _typeof(ret)) === 'object' && ret !== null && !ret.hasOwnProperty('__aff_tick')) {
 	          this.setupPatchTick(ret);
 	          ret.__aff_tick = this.patchTick + 1;
@@ -1131,7 +1158,7 @@
 	              args[_key3 - 1] = arguments[_key3];
 	            }
 	
-	            var path = basePath.slice(0);
+	            var path = statePath.slice(0);
 	            path.push(key);
 	            var value = _this2.updateState.apply(_this2, [path].concat(args));
 	            obj[key] = value;
@@ -1285,7 +1312,7 @@
 	    }
 	  }, {
 	    key: 'setupState',
-	    value: function setupState(state, basePath, forceSetup) {
+	    value: function setupState(state, statePath, forceSetup) {
 	      var _this3 = this;
 	
 	      if ((typeof state === 'undefined' ? 'undefined' : _typeof(state)) != 'object') {
@@ -1323,20 +1350,24 @@
 	            configurable: false,
 	            enumerable: false,
 	            writable: true,
-	            value: basePath.slice(0)
+	            value: statePath.slice(0)
 	          });
 	        })();
 	      } else {
-	        if (!state.$path.reduce(function (acc, cur, i) {
-	          return acc && cur == basePath[i];
-	        }, true)) {
-	          throw ['cannot change state object path', basePath.slice(0), state.$path];
+	        // no need to setup accessors, check path
+	        if (this.app.get(statePath) !== state) {
+	          // setting new state
+	          if (!state.$path.reduce(function (acc, cur, i) {
+	            return acc && cur == statePath[i];
+	          }, true)) {
+	            throw ['cannot change state object path', statePath.slice(0), state.$path];
+	          }
 	        }
 	      }
 	
 	      // recursively
 	      for (var key in state) {
-	        var subPath = basePath.slice(0);
+	        var subPath = statePath.slice(0);
 	        subPath.push(key);
 	        this.setupState(state[key], subPath, forceSetup);
 	      }
@@ -2367,12 +2398,13 @@
 	    _templateObject21 = _taggedTemplateLiteral(['', ''], ['', '']),
 	    _templateObject22 = _taggedTemplateLiteral(['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    '], ['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    ']),
 	    _templateObject23 = _taggedTemplateLiteral(['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      '], ['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      ']),
-	    _templateObject24 = _taggedTemplateLiteral(['\n          padding: 0 10px;\n          color: #AAA;\n        '], ['\n          padding: 0 10px;\n          color: #AAA;\n        ']),
-	    _templateObject25 = _taggedTemplateLiteral(['\n        text-decoration: underline;\n      '], ['\n        text-decoration: underline;\n      ']),
-	    _templateObject26 = _taggedTemplateLiteral(['#close-debug-panel'], ['#close-debug-panel']),
-	    _templateObject27 = _taggedTemplateLiteral(['\n      margin: 10px 0;\n    '], ['\n      margin: 10px 0;\n    ']),
-	    _templateObject28 = _taggedTemplateLiteral(['#panel-position-', ''], ['#panel-position-', '']),
-	    _templateObject29 = _taggedTemplateLiteral(['\n        font-size: 10px;\n        width: 3em;\n      '], ['\n        font-size: 10px;\n        width: 3em;\n      ']);
+	    _templateObject24 = _taggedTemplateLiteral(['\n        float: left;\n      '], ['\n        float: left;\n      ']),
+	    _templateObject25 = _taggedTemplateLiteral(['\n          padding: 0 10px;\n          color: #AAA;\n        '], ['\n          padding: 0 10px;\n          color: #AAA;\n        ']),
+	    _templateObject26 = _taggedTemplateLiteral(['\n        text-decoration: underline;\n      '], ['\n        text-decoration: underline;\n      ']),
+	    _templateObject27 = _taggedTemplateLiteral(['#close-debug-panel'], ['#close-debug-panel']),
+	    _templateObject28 = _taggedTemplateLiteral(['\n      margin: 10px 0;\n    '], ['\n      margin: 10px 0;\n    ']),
+	    _templateObject29 = _taggedTemplateLiteral(['#panel-position-', ''], ['#panel-position-', '']),
+	    _templateObject30 = _taggedTemplateLiteral(['\n        font-size: 10px;\n        width: 3em;\n      '], ['\n        font-size: 10px;\n        width: 3em;\n      ']);
 	
 	exports.DebugPanel = DebugPanel;
 	
@@ -2598,7 +2630,7 @@
 	
 	function UpdateLogEntry(log) {
 	  return (0, _tags.div)((0, _tagged.css)(_templateObject22), (0, _tagged.key)(_templateObject21, log.key), (0, _tags.span)('tick: ', log.tick, (0, _tagged.css)(_templateObject23)), log.args.map(function (arg, i) {
-	    return (0, _tags.span)((0, _tags.span)((0, _tagged.css)(_templateObject24), function () {
+	    return (0, _tags.span)((0, _tagged.css)(_templateObject24), (0, _tags.span)((0, _tagged.css)(_templateObject25), function () {
 	      if (i > 0 && i != log.args.length - 1) {
 	        return '.';
 	      } else if (i == log.args.length - 1) {
@@ -2611,7 +2643,7 @@
 	
 	function formatArg(arg) {
 	  if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__is_op) {
-	    return [(0, _tags.span)(arg.op, (0, _tagged.css)(_templateObject25)), arg.args ? [': ', function () {
+	    return [(0, _tags.span)(arg.op, (0, _tagged.css)(_templateObject26)), arg.args ? [': ', function () {
 	      var ret = [];
 	      for (var i = 0; i < arg.args.length; i++) {
 	        if (i > 0) {
@@ -2652,14 +2684,14 @@
 	
 	// close panel
 	function CloseButton(debugState) {
-	  return (0, _tags.button)((0, _tagged.$)(_templateObject26), (0, _tagged.css)(_templateObject27), (0, _event.on)('click', function () {
+	  return (0, _tags.button)((0, _tagged.$)(_templateObject27), (0, _tagged.css)(_templateObject28), (0, _event.on)('click', function () {
 	    debugState.$update('show', false);
 	  }), 'Close');
 	}
 	
 	function PanelPosition(debugState) {
 	  function makeButton(text, left, right, top, bottom) {
-	    return (0, _tags.button)((0, _tagged.$)(_templateObject28, text), (0, _tagged.css)(_templateObject29), text, (0, _event.on)('click', function () {
+	    return (0, _tags.button)((0, _tagged.$)(_templateObject29, text), (0, _tagged.css)(_templateObject30), text, (0, _event.on)('click', function () {
 	      debugState.$update((0, _operations.$merge)({
 	        left: left,
 	        right: right,
@@ -2672,7 +2704,7 @@
 	  var width = debugState.panelWidthPercent || 45;
 	  var height = debugState.panelHeightPercent || 45;
 	
-	  return (0, _tags.div)((0, _tagged.css)(_templateObject27), (0, _tags.div)(makeButton('TL', 0, 100 - width + '%', 0, 100 - height + '%'), makeButton('TP', 0, 0, 0, 100 - height + '%'), makeButton('TR', 100 - width + '%', 0, 0, 100 - height + '%')), (0, _tags.div)(makeButton('LE', 0, 100 - width + '%', 0, 0), makeButton('MI', 0, 0, 0, 0), makeButton('RI', 100 - width + '%', 0, 0, 0)), (0, _tags.div)(makeButton('BL', 0, 100 - width + '%', 100 - height + '%', 0), makeButton('BO', 0, 0, 100 - height + '%', 0), makeButton('BR', 100 - width + '%', 0, 100 - height + '%', 0)));
+	  return (0, _tags.div)((0, _tagged.css)(_templateObject28), (0, _tags.div)(makeButton('TL', 0, 100 - width + '%', 0, 100 - height + '%'), makeButton('TP', 0, 0, 0, 100 - height + '%'), makeButton('TR', 100 - width + '%', 0, 0, 100 - height + '%')), (0, _tags.div)(makeButton('LE', 0, 100 - width + '%', 0, 0), makeButton('MI', 0, 0, 0, 0), makeButton('RI', 100 - width + '%', 0, 0, 0)), (0, _tags.div)(makeButton('BL', 0, 100 - width + '%', 100 - height + '%', 0), makeButton('BO', 0, 0, 100 - height + '%', 0), makeButton('BR', 100 - width + '%', 0, 100 - height + '%', 0)));
 	}
 
 /***/ }
