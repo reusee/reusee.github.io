@@ -179,31 +179,7 @@
 	  });
 	});
 	
-	var _bind = __webpack_require__(11);
-	
-	Object.keys(_bind).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _bind[key];
-	    }
-	  });
-	});
-	
-	var _debug = __webpack_require__(12);
-	
-	Object.keys(_debug).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _debug[key];
-	    }
-	  });
-	});
-	
-	var _panel = __webpack_require__(13);
+	var _panel = __webpack_require__(11);
 	
 	Object.keys(_panel).forEach(function (key) {
 	  if (key === "default" || key === "__esModule") return;
@@ -309,6 +285,8 @@
 	  }, {
 	    key: 'setupState',
 	    value: function setupState(obj) {
+	      var _this = this;
+	
 	      var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 	      var scopes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 	
@@ -330,76 +308,27 @@
 	        return;
 	      }
 	
-	      // parse $ref
-	      var refInfos = void 0;
-	      var ref = void 0;
-	      if ('$ref' in obj) {
-	        ref = obj['$ref'];
-	      } else if ('$use' in obj) {
-	        ref = obj['$use'];
-	      }
-	      if (ref) {
-	        if ((typeof ref === 'undefined' ? 'undefined' : _typeof(ref)) === 'object' && ref !== null) {
-	          if (Array.isArray(ref)) {
-	            refInfos = {};
-	            for (var _i = 0; _i < ref.length; _i++) {
-	              var key = ref[_i];
-	              if (key in obj) {
-	                throw ['ref key conflict', key];
-	              }
-	              refInfos[key] = key;
-	            }
-	          } else {
-	            for (var _key2 in ref) {
-	              if (_key2 in obj) {
-	                throw ['ref key conflict', _key2];
-	              }
-	            }
-	            refInfos = ref;
-	          }
-	          delete obj['$ref'];
-	          delete obj['$use'];
-	        } else {
-	          throw ['bad ref', ref];
-	        }
-	      }
-	
 	      var app = this;
-	      function setGetter(obj, key, from) {
-	        var parentPathOfFrom = from.slice(0);
-	        parentPathOfFrom.pop();
-	        if (!(key in obj)) {
-	          Object.defineProperty(obj, key, {
-	            configurable: false,
-	            enumerable: true,
-	            get: function get() {
-	              return app.get(from);
-	            },
-	            set: function set(v) {
-	              app.update.apply(app, _toConsumableArray(from).concat([v]));
-	            }
-	          });
-	        }
-	        if (!obj.__aff_ref_keys) {
-	          Object.defineProperty(obj, '__aff_ref_keys', {
-	            configurable: false,
-	            writable: true,
-	            enumerable: false,
-	            value: {}
-	          });
-	        }
-	        obj.__aff_ref_keys[key] = from;
-	      }
+	      var keys = Object.getOwnPropertyNames(obj);
+	      var bindings = {};
+	      var subStateKeys = [];
+	      for (var _i = 0; _i < keys.length; _i++) {
+	        var key = keys[_i];
 	
-	      // setup
-	      for (var _key3 in refInfos) {
-	        var name = refInfos[_key3];
-	        // search in scopes
-	        var found = false;
-	        for (var _i2 = scopes.length - 1; _i2 >= 0; _i2--) {
-	          var _bindings = scopes[_i2];
-	          if (name in _bindings) {
-	            // found
+	        var _p = path.slice(0);
+	        _p.push(key);
+	        bindings[key] = _p;
+	
+	        var subState = obj[key];
+	        if (subState instanceof _state2.Reference) {
+	          var name = subState.name;
+	          // search in scopes
+	          var found = false;
+	          for (var _i2 = scopes.length - 1; _i2 >= 0; _i2--) {
+	            var _bindings = scopes[_i2];
+	            if (!(name in _bindings)) {
+	              continue;
+	            }
 	            found = true;
 	            var stopPath = _bindings[name].slice(0);
 	            // check loop
@@ -412,74 +341,88 @@
 	              }
 	            }
 	            if (sameLen == stopPath.length) {
-	              throw ['loop in $ref', path, stopPath];
+	              throw ['loop in reference', path, stopPath];
 	            }
 	            // setup getter and setter
-	            stopPath.pop();
-	            var stopLen = stopPath.length;
-	            var setupPath = path.slice(0);
-	            while (setupPath.length > stopLen) {
-	              setGetter(this.get(setupPath), _key3, _bindings[name]);
-	              setupPath.pop();
+	            if (subState instanceof _state2.WriteOnlyReference) {
+	              (function () {
+	                // write only reference, do not set through
+	                var from = _bindings[name];
+	                Object.defineProperty(obj, key, {
+	                  configurable: false,
+	                  enumerable: true,
+	                  get: function get() {
+	                    return app.get(from);
+	                  },
+	                  set: function set(v) {
+	                    app.update.apply(app, _toConsumableArray(from).concat([v]));
+	                  }
+	                });
+	                if (!obj.__aff_wo_ref_keys) {
+	                  Object.defineProperty(obj, '__aff_wo_ref_keys', {
+	                    configurable: false,
+	                    writable: true,
+	                    enumerable: false,
+	                    value: {}
+	                  });
+	                }
+	                obj.__aff_wo_ref_keys[key] = true;
+	              })();
+	            } else {
+	              stopPath.pop();
+	              var stopLen = stopPath.length;
+	              var setupPath = path.slice(0);
+	
+	              var _loop = function _loop() {
+	                var obj = _this.get(setupPath);
+	                var from = _bindings[name];
+	                var parentPathOfFrom = from.slice(0);
+	                parentPathOfFrom.pop();
+	                Object.defineProperty(obj, key, {
+	                  configurable: false,
+	                  enumerable: true,
+	                  get: function get() {
+	                    return app.get(from);
+	                  },
+	                  set: function set(v) {
+	                    app.update.apply(app, _toConsumableArray(from).concat([v]));
+	                  }
+	                });
+	                if (!obj.__aff_ref_keys) {
+	                  Object.defineProperty(obj, '__aff_ref_keys', {
+	                    configurable: false,
+	                    writable: true,
+	                    enumerable: false,
+	                    value: {}
+	                  });
+	                }
+	                obj.__aff_ref_keys[key] = from;
+	                setupPath.pop();
+	              };
+	
+	              while (setupPath.length > stopLen) {
+	                _loop();
+	              }
 	            }
+	            break; // stop searching
 	          }
-	        }
-	        if (!found) {
-	          throw ['no state named ' + name];
+	          if (!found) {
+	            throw ['no state named ' + name];
+	          }
+	        } else {
+	          subStateKeys.push(key);
 	        }
 	      }
 	
-	      // collect bindings
-	      var bindings = {};
-	      for (var _key4 in obj) {
-	        var _p = path.slice(0);
-	        _p.push(_key4);
-	        bindings[_key4] = _p;
-	      }
 	      scopes = scopes.slice(0); // copy
 	      scopes.push(bindings);
 	
-	      for (var _key5 in obj) {
-	        var subState = obj[_key5];
-	
-	        // setup updater
-	        if (subState instanceof _state2.Updater) {
-	          (function () {
-	            var name = subState.args[0];
-	            var updateArgs = subState.args.slice(1);
-	            // search update path
-	            var found = false;
-	            for (var _i3 = scopes.length - 1; _i3 >= 0; _i3--) {
-	              var _bindings2 = scopes[_i3];
-	              if (name in _bindings2) {
-	                var _ret2 = function () {
-	                  // found
-	                  found = true;
-	                  var updatePath = _bindings2[name].slice(0);
-	                  obj[_key5] = function () {
-	                    for (var _len2 = arguments.length, args = Array(_len2), _key6 = 0; _key6 < _len2; _key6++) {
-	                      args[_key6] = arguments[_key6];
-	                    }
-	
-	                    app.update.apply(app, _toConsumableArray(updatePath).concat(_toConsumableArray(updateArgs), args));
-	                  };
-	                  return 'break';
-	                }();
-	
-	                if (_ret2 === 'break') break;
-	              }
-	            }
-	            if (!found) {
-	              throw ['no state named ' + name];
-	            }
-	
-	            // setup sub state
-	          })();
-	        } else {
-	          var _p2 = path.slice(0);
-	          _p2.push(_key5);
-	          this.setupState(subState, _p2, scopes);
-	        }
+	      for (var _i3 = 0; _i3 < subStateKeys.length; _i3++) {
+	        var _key2 = subStateKeys[_i3];
+	        var _subState = obj[_key2];
+	        var _p2 = path.slice(0);
+	        _p2.push(_key2);
+	        this.setupState(_subState, _p2, scopes);
 	      }
 	    }
 	  }, {
@@ -500,8 +443,8 @@
 	  }, {
 	    key: 'dispatchEvent',
 	    value: function dispatchEvent(type) {
-	      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key7 = 1; _key7 < _len3; _key7++) {
-	        args[_key7 - 1] = arguments[_key7];
+	      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key3 = 1; _key3 < _len2; _key3++) {
+	        args[_key3 - 1] = arguments[_key3];
 	      }
 	
 	      for (var subtype in this.events[type]) {
@@ -511,8 +454,8 @@
 	  }, {
 	    key: 'update',
 	    value: function update() {
-	      for (var _len4 = arguments.length, args = Array(_len4), _key8 = 0; _key8 < _len4; _key8++) {
-	        args[_key8] = arguments[_key8];
+	      for (var _len3 = arguments.length, args = Array(_len3), _key4 = 0; _key4 < _len3; _key4++) {
+	        args[_key4] = arguments[_key4];
 	      }
 	
 	      return this.updateMulti(args);
@@ -524,8 +467,8 @@
 	        throw ['state not set'];
 	      }
 	
-	      for (var _len5 = arguments.length, args = Array(_len5), _key9 = 0; _key9 < _len5; _key9++) {
-	        args[_key9] = arguments[_key9];
+	      for (var _len4 = arguments.length, args = Array(_len4), _key5 = 0; _key5 < _len4; _key5++) {
+	        args[_key5] = arguments[_key5];
 	      }
 	
 	      for (var i = 0; i < args.length; i++) {
@@ -561,7 +504,7 @@
 	          this.node = result[1];
 	        }
 	        while (this.updated) {
-	          if (this.updateCount > 4096) {
+	          if (this.updateCount > 128) {
 	            // infinite loop
 	            throw ['infinite loop in updating', args];
 	          }
@@ -595,8 +538,8 @@
 	  }, {
 	    key: 'get',
 	    value: function get() {
-	      for (var _len6 = arguments.length, args = Array(_len6), _key10 = 0; _key10 < _len6; _key10++) {
-	        args[_key10] = arguments[_key10];
+	      for (var _len5 = arguments.length, args = Array(_len5), _key6 = 0; _key6 < _len5; _key6++) {
+	        args[_key6] = arguments[_key6];
 	      }
 	
 	      var path = args;
@@ -764,7 +707,7 @@
 	
 	        // attributes
 	
-	        var _loop = function _loop(key) {
+	        var _loop2 = function _loop2(key) {
 	          var updateAttr = false;
 	          if (!lastNode.attributes) {
 	            updateAttr = true;
@@ -805,7 +748,7 @@
 	        };
 	
 	        for (var key in node.attributes) {
-	          _loop(key);
+	          _loop2(key);
 	        }
 	        for (var key in lastNode.attributes) {
 	          var removeAttr = false;
@@ -822,8 +765,8 @@
 	
 	        // events
 	        var eventKeys = {};
-	        for (var _key11 in node.events) {
-	          var k = (0, _event.elementSetEvent)(lastElement, _key11, node.events[_key11].bind(node));
+	        for (var _key7 in node.events) {
+	          var k = (0, _event.elementSetEvent)(lastElement, _key7, node.events[_key7].bind(node));
 	          eventKeys[k] = true;
 	        }
 	        if (lastElement.__aff_events) {
@@ -842,31 +785,31 @@
 	        }
 	
 	        // class
-	        for (var _key12 in node.classList) {
+	        for (var _key8 in node.classList) {
 	          // should update
 	          var updateClass = false;
 	          if (!lastNode.classList) {
 	            updateClass = true;
-	          } else if (node.classList[_key12] != lastNode.classList[_key12]) {
+	          } else if (node.classList[_key8] != lastNode.classList[_key8]) {
 	            updateClass = true;
 	          }
 	          if (updateClass) {
-	            if (node.classList[_key12]) {
-	              lastElement.classList.add(_key12);
+	            if (node.classList[_key8]) {
+	              lastElement.classList.add(_key8);
 	            } else {
-	              lastElement.classList.remove(_key12);
+	              lastElement.classList.remove(_key8);
 	            }
 	          }
 	        }
-	        for (var _key13 in lastNode.classList) {
+	        for (var _key9 in lastNode.classList) {
 	          var deleteClass = false;
 	          if (!node.classList) {
 	            deleteClass = true;
-	          } else if (!(_key13 in node.classList)) {
+	          } else if (!(_key9 in node.classList)) {
 	            deleteClass = true;
 	          }
 	          if (deleteClass) {
-	            lastElement.classList.remove(_key13);
+	            lastElement.classList.remove(_key9);
 	          }
 	        }
 	
@@ -879,36 +822,36 @@
 	          if (styleType === 'string') {
 	            lastElement.style = node.style;
 	          } else if (styleType === 'object' && node.style !== null) {
-	            for (var _key14 in node.style) {
-	              lastElement.style[_key14] = node.style[_key14];
+	            for (var _key10 in node.style) {
+	              lastElement.style[_key10] = node.style[_key10];
 	            }
 	          }
 	        }
 	        // diff object
 	        else if (styleType === 'object') {
 	            if (node.style !== null) {
-	              for (var _key15 in node.style) {
+	              for (var _key11 in node.style) {
 	                var updateStyle = false;
 	                if (!lastNode.style) {
 	                  updateStyle = true;
-	                } else if (node.style[_key15] != lastNode.style[_key15]) {
+	                } else if (node.style[_key11] != lastNode.style[_key11]) {
 	                  updateStyle = true;
 	                }
 	                if (updateStyle) {
-	                  lastElement.style[_key15] = node.style[_key15];
+	                  lastElement.style[_key11] = node.style[_key11];
 	                }
 	              }
 	            }
 	            if (lastNode.style !== null) {
-	              for (var _key16 in lastNode.style) {
+	              for (var _key12 in lastNode.style) {
 	                var clearStyle = false;
 	                if (!node.style) {
 	                  clearStyle = true;
-	                } else if (!(_key16 in node.style)) {
+	                } else if (!(_key12 in node.style)) {
 	                  clearStyle = true;
 	                }
 	                if (clearStyle) {
-	                  lastElement.style[_key16] = '';
+	                  lastElement.style[_key12] = '';
 	                }
 	              }
 	            }
@@ -1126,7 +1069,7 @@
 	        var ret = void 0;
 	        if (_typeof(args[0]) === 'object' && args[0] !== null && args[0].__is_op) {
 	          ret = args[0].apply(obj, this);
-	          if (ret === obj) {
+	          if ((typeof ret === 'undefined' ? 'undefined' : _typeof(ret)) === 'object' && ret !== null && ret === obj) {
 	            this.setupPatchTick(ret);
 	            ret.__aff_tick = this.patchTick + 1;
 	          }
@@ -1290,6 +1233,9 @@
 	              return true;
 	            }
 	            for (var _key5 in arg) {
+	              if (arg.__aff_wo_ref_keys && arg.__aff_wo_ref_keys[_key5]) {
+	                continue;
+	              }
 	              if (this.argsChanged(arg[_key5], lastArg[_key5])) {
 	                return true;
 	              }
@@ -1297,16 +1243,16 @@
 	          }
 	
 	          // function
-	          else if (argType === 'function') {
-	              if (arg.name !== lastArg.name) {
-	                return true;
-	              }
-	            }
+	          //else if (argType === 'function') {
+	          //  if (arg.name !== lastArg.name) {
+	          //    return true;
+	          //  }
+	          //}
 	
-	            // compare
-	            else if (arg !== lastArg) {
-	                return true;
-	              }
+	          // compare
+	          else if (arg !== lastArg) {
+	              return true;
+	            }
 	
 	      return false;
 	    }
@@ -1343,7 +1289,21 @@
 	              }
 	
 	              app.update.apply(app, _toConsumableArray(state.$path).concat(args));
-	              return app.get(state.$path);
+	            }
+	          });
+	          Object.defineProperty(state, '$updateMulti', {
+	            configurable: false,
+	            enumerable: false,
+	            writable: true,
+	            value: function value() {
+	              for (var _len5 = arguments.length, args = Array(_len5), _key7 = 0; _key7 < _len5; _key7++) {
+	                args[_key7] = arguments[_key7];
+	              }
+	
+	              var expanded = args.map(function (arg) {
+	                return [].concat(_toConsumableArray(state.$path), _toConsumableArray(arg));
+	              });
+	              app.updateMulti.apply(app, _toConsumableArray(expanded));
 	            }
 	          });
 	          Object.defineProperty(state, '$path', {
@@ -1392,8 +1352,12 @@
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	exports.readOnly = readOnly;
-	exports.Updater = Updater;
-	exports.updater = updater;
+	exports.ref = ref;
+	exports.wo = wo;
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -1432,16 +1396,30 @@
 	  return obj;
 	}
 	
-	function Updater(args) {
-	  this.args = args;
+	var Reference = exports.Reference = function Reference(name) {
+	  _classCallCheck(this, Reference);
+	
+	  this.name = name;
+	};
+	
+	function ref(name) {
+	  return new Reference(name);
 	}
 	
-	function updater() {
-	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	    args[_key] = arguments[_key];
+	var WriteOnlyReference = exports.WriteOnlyReference = function (_Reference) {
+	  _inherits(WriteOnlyReference, _Reference);
+	
+	  function WriteOnlyReference(name) {
+	    _classCallCheck(this, WriteOnlyReference);
+	
+	    return _possibleConstructorReturn(this, (WriteOnlyReference.__proto__ || Object.getPrototypeOf(WriteOnlyReference)).call(this, name));
 	  }
 	
-	  return new Updater(args);
+	  return WriteOnlyReference;
+	}(Reference);
+	
+	function wo(name) {
+	  return new WriteOnlyReference(name);
 	}
 
 /***/ },
@@ -2187,9 +2165,7 @@
 	  return true;
 	}
 	
-	// export
-	
-	module.exports = _extends({
+	var allOperations = _extends({
 	  $func: $func,
 	  $delete: $delete,
 	  $del: $del,
@@ -2198,6 +2174,18 @@
 	}, arrayOps, {
 	  $merge: $merge,
 	  $any: $any
+	});
+	
+	var op = {};
+	
+	for (var key in allOperations) {
+	  op[key.slice(1)] = allOperations[key];
+	}
+	
+	// export
+	
+	module.exports = _extends({}, allOperations, {
+	  op: op
 	});
 
 /***/ },
@@ -2248,6 +2236,8 @@
 	
 	module.exports = _extends({}, helpers, {
 	
+	  h: helpers,
+	
 	  none: none,
 	  None: none,
 	  NONE: none,
@@ -2263,108 +2253,6 @@
 
 /***/ },
 /* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.bindHover = undefined;
-	exports.bindFocus = bindFocus;
-	exports.bindEnter = bindEnter;
-	exports.bindOver = bindOver;
-	
-	var _event = __webpack_require__(4);
-	
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-	
-	function bindFocus(state, name) {
-	  var _ref;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref = {}, _defineProperty(_ref, 'onfocus$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref, 'onblur$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref;
-	}
-	
-	function bindEnter(state, name) {
-	  var _ref2;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref2 = {}, _defineProperty(_ref2, 'onmouseenter$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref2, 'onmouseleave$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref2;
-	}
-	
-	function bindOver(state, name) {
-	  var _ref3;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref3 = {}, _defineProperty(_ref3, 'onmouseover$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref3, 'onmouseout$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref3;
-	}
-	
-	var bindHover = exports.bindHover = bindOver;
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.consoleLogUpdates = undefined;
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	var _operations = __webpack_require__(9);
-	
-	var _event = __webpack_require__(4);
-	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-	
-	var consoleLogUpdates = exports.consoleLogUpdates = (0, _event.on)('afterUpdate:__log_updates', function (state) {
-	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
-	
-	  console.log('%cUPDATE', 'background: #555; color: white', args.slice(0, -1).map(function (arg) {
-	    return formatUpdatePath(arg);
-	  }).join(' . ') + ' => ', formatUpdateArg(args[args.length - 1]));
-	});
-	
-	function formatUpdatePath(arg) {
-	  if (arg === _operations.$any) {
-	    return '$any';
-	  }
-	  return arg;
-	}
-	
-	function formatUpdateArg(arg) {
-	  if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__is_op) {
-	    return [arg.op].concat(_toConsumableArray(arg.args || []));
-	  }
-	  return arg;
-	}
-
-/***/ },
-/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2550,11 +2438,16 @@
 	      keys.sort(function (a, b) {
 	        return a > b;
 	      });
+	      var isArray = Array.isArray(appState);
 	
 	      var _loop = function _loop(i) {
 	        var key = keys[i];
 	        if (appState[key] === debugState) {
 	          // skip debug state
+	          return 'continue';
+	        }
+	        if (key.charAt(0) >= 'A' && key.charAt(0) <= 'Z') {
+	          // skip component state
 	          return 'continue';
 	        }
 	        var valueNode = void 0;
@@ -2576,7 +2469,7 @@
 	
 	        ret.push((0, _tags.tr)((0, _tagged.css)(_templateObject15), bindPointingPath,
 	        // key
-	        (0, _tags.td)(key, (0, _tagged.css)(_templateObject16), bindPointingPath),
+	        isArray ? null : (0, _tags.td)(key, (0, _tagged.css)(_templateObject16), bindPointingPath),
 	        // value
 	        (0, _tags.td)((0, _tagged.$)(_templateObject17), valueNode, (0, _tagged.css)(_templateObject18), bindPointingPath)));
 	      };
