@@ -65,27 +65,28 @@
 	
 	function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 	
-	var saved = JSON.parse(window.localStorage.getItem('todomvc'));
+	var saved = JSON.parse(window.localStorage.getItem('todomvc')) || {};
 	
 	var init_state = {
 	  todos: saved.todos || [],
 	  filter: saved.filter || 'All',
 	
 	  Header: {
-	    updateTodos: (0, _index.updater)('todos')
+	    todos: (0, _index.weakRef)('todos')
 	  },
 	
 	  TodoList: {
-	    $ref: ['todos', 'filter'],
+	    todos: (0, _index.ref)('todos'),
+	    filter: (0, _index.ref)('filter'),
 	
 	    Todo: {
-	      updateTodos: (0, _index.updater)('todos')
+	      todos: (0, _index.weakRef)('todos')
 	    }
 	  },
 	
 	  Footer: {
-	    $ref: ['todos', 'filter'],
-	    updateTodos: (0, _index.updater)('todos')
+	    todos: (0, _index.ref)('todos'),
+	    filter: (0, _index.ref)('filter')
 	  }
 	};
 	
@@ -104,7 +105,7 @@
 	    if (e.keyCode != 13 || this.element.value.length == 0) {
 	      return;
 	    }
-	    state.updateTodos((0, _index.$push)({
+	    state.todos.$update((0, _index.$push)({
 	      completed: false,
 	      content: this.element.value
 	    }));
@@ -121,16 +122,16 @@
 	  }, (0, _index.div)((0, _index.$)(_templateObject3), (0, _index.checkbox)((0, _index.$)(_templateObject4), {
 	    checked: todo.completed
 	  }, (0, _index.on)('click', function () {
-	    state.updateTodos(i, 'completed', this.element.checked);
+	    state.todos.$update(i, 'completed', this.element.checked);
 	  })), (0, _index.label)(todo.content, (0, _index.on)('dblclick', function () {
-	    state.updateTodos(i, 'editing', true);
+	    state.todos.$update(i, 'editing', true);
 	  })), (0, _index.button)((0, _index.$)(_templateObject5), (0, _index.on)('click', function () {
-	    state.updateTodos((0, _index.$splice)(i, 1));
+	    state.todos.$update((0, _index.$splice)(i, 1));
 	  }))), (0, _index.input)((0, _index.$)(_templateObject6), {
 	    value: todo.content
 	  }, (0, _index.on)('keypress', function (e) {
 	    if (e.keyCode == 13) {
-	      state.updateTodos(i, (0, _index.$merge)({
+	      state.todos.$update(i, (0, _index.$merge)({
 	        content: this.element.value,
 	        editing: false
 	      }));
@@ -164,7 +165,7 @@
 	  }, false) ? (0, _index.button)({
 	    classList: 'clear-completed',
 	    onclick: function onclick() {
-	      state.updateTodos((0, _index.$filter)(function (todo) {
+	      state.todos.$update((0, _index.$filter)(function (todo) {
 	        return !todo.completed;
 	      }));
 	    }
@@ -211,17 +212,107 @@
 	
 	var _app = __webpack_require__(2);
 	
-	Object.keys(_app).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _app[key];
-	    }
-	  });
+	Object.defineProperty(exports, 'App', {
+	  enumerable: true,
+	  get: function get() {
+	    return _app.App;
+	  }
 	});
 	
-	var _operations = __webpack_require__(9);
+	var _nodes = __webpack_require__(7);
+	
+	Object.defineProperty(exports, 't', {
+	  enumerable: true,
+	  get: function get() {
+	    return _nodes.t;
+	  }
+	});
+	Object.defineProperty(exports, 'e', {
+	  enumerable: true,
+	  get: function get() {
+	    return _nodes.e;
+	  }
+	});
+	Object.defineProperty(exports, 'skip', {
+	  enumerable: true,
+	  get: function get() {
+	    return _nodes.skip;
+	  }
+	});
+	
+	var _tagged = __webpack_require__(8);
+	
+	Object.defineProperty(exports, '$', {
+	  enumerable: true,
+	  get: function get() {
+	    return _tagged.$;
+	  }
+	});
+	Object.defineProperty(exports, 'css', {
+	  enumerable: true,
+	  get: function get() {
+	    return _tagged.css;
+	  }
+	});
+	Object.defineProperty(exports, 'key', {
+	  enumerable: true,
+	  get: function get() {
+	    return _tagged.key;
+	  }
+	});
+	
+	var _event = __webpack_require__(4);
+	
+	Object.defineProperty(exports, 'on', {
+	  enumerable: true,
+	  get: function get() {
+	    return _event.on;
+	  }
+	});
+	
+	var _state = __webpack_require__(6);
+	
+	Object.defineProperty(exports, 'readOnly', {
+	  enumerable: true,
+	  get: function get() {
+	    return _state.readOnly;
+	  }
+	});
+	Object.defineProperty(exports, 'ref', {
+	  enumerable: true,
+	  get: function get() {
+	    return _state.ref;
+	  }
+	});
+	Object.defineProperty(exports, 'weakRef', {
+	  enumerable: true,
+	  get: function get() {
+	    return _state.weakRef;
+	  }
+	});
+	Object.defineProperty(exports, 'cached', {
+	  enumerable: true,
+	  get: function get() {
+	    return _state.cached;
+	  }
+	});
+	Object.defineProperty(exports, 'wrap', {
+	  enumerable: true,
+	  get: function get() {
+	    return _state.wrap;
+	  }
+	});
+	
+	var _panel = __webpack_require__(9);
+	
+	Object.defineProperty(exports, 'DebugPanel', {
+	  enumerable: true,
+	  get: function get() {
+	    return _panel.DebugPanel;
+	  }
+	});
+	
+	var _operations = __webpack_require__(10);
 	
 	Object.keys(_operations).forEach(function (key) {
 	  if (key === "default" || key === "__esModule") return;
@@ -233,7 +324,7 @@
 	  });
 	});
 	
-	var _tags = __webpack_require__(10);
+	var _tags = __webpack_require__(11);
 	
 	Object.keys(_tags).forEach(function (key) {
 	  if (key === "default" || key === "__esModule") return;
@@ -241,102 +332,6 @@
 	    enumerable: true,
 	    get: function get() {
 	      return _tags[key];
-	    }
-	  });
-	});
-	
-	var _tagged = __webpack_require__(8);
-	
-	Object.keys(_tagged).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _tagged[key];
-	    }
-	  });
-	});
-	
-	var _event = __webpack_require__(4);
-	
-	Object.keys(_event).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _event[key];
-	    }
-	  });
-	});
-	
-	var _mutable_state = __webpack_require__(5);
-	
-	Object.keys(_mutable_state).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _mutable_state[key];
-	    }
-	  });
-	});
-	
-	var _state = __webpack_require__(6);
-	
-	Object.keys(_state).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _state[key];
-	    }
-	  });
-	});
-	
-	var _bind = __webpack_require__(11);
-	
-	Object.keys(_bind).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _bind[key];
-	    }
-	  });
-	});
-	
-	var _debug = __webpack_require__(12);
-	
-	Object.keys(_debug).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _debug[key];
-	    }
-	  });
-	});
-	
-	var _panel = __webpack_require__(13);
-	
-	Object.keys(_panel).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _panel[key];
-	    }
-	  });
-	});
-	
-	var _nodes = __webpack_require__(7);
-	
-	Object.keys(_nodes).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _nodes[key];
 	    }
 	  });
 	});
@@ -389,6 +384,7 @@
 	      nativeNodeCreate: 0,
 	      nodeCacheHit: 0
 	    };
+	    this.jobs = [];
 	    this.events = {};
 	    this.init.apply(this, arguments);
 	  }
@@ -422,6 +418,8 @@
 	  }, {
 	    key: 'setupState',
 	    value: function setupState(obj) {
+	      var _this = this;
+	
 	      var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 	      var scopes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 	
@@ -443,75 +441,27 @@
 	        return;
 	      }
 	
-	      // parse $ref
-	      var refInfos = void 0;
-	      var ref = void 0;
-	      if ('$ref' in obj) {
-	        ref = obj['$ref'];
-	      } else if ('$use' in obj) {
-	        ref = obj['$use'];
-	      }
-	      if (ref) {
-	        if ((typeof ref === 'undefined' ? 'undefined' : _typeof(ref)) === 'object' && ref !== null) {
-	          if (Array.isArray(ref)) {
-	            refInfos = {};
-	            for (var _i = 0; _i < ref.length; _i++) {
-	              var key = ref[_i];
-	              if (key in obj) {
-	                throw ['ref key conflict', key];
-	              }
-	              refInfos[key] = key;
-	            }
-	          } else {
-	            for (var _key2 in ref) {
-	              if (_key2 in obj) {
-	                throw ['ref key conflict', _key2];
-	              }
-	            }
-	            refInfos = ref;
-	          }
-	          delete obj['$ref'];
-	        } else {
-	          throw ['bad ref', ref];
-	        }
-	      }
-	
 	      var app = this;
-	      function setGetter(obj, key, from) {
-	        var parentPathOfFrom = from.slice(0);
-	        parentPathOfFrom.pop();
-	        if (!(key in obj)) {
-	          Object.defineProperty(obj, key, {
-	            configurable: false,
-	            enumerable: true,
-	            get: function get() {
-	              return app.get(from);
-	            },
-	            set: function set(v) {
-	              app.update.apply(app, _toConsumableArray(from).concat([v]));
-	            }
-	          });
-	        }
-	        if (!obj.__aff_ref_keys) {
-	          Object.defineProperty(obj, '__aff_ref_keys', {
-	            configurable: false,
-	            writable: true,
-	            enumerable: false,
-	            value: {}
-	          });
-	        }
-	        obj.__aff_ref_keys[key] = from;
-	      }
+	      var keys = Object.getOwnPropertyNames(obj);
+	      var bindings = {};
+	      var subStateKeys = [];
+	      for (var _i = 0; _i < keys.length; _i++) {
+	        var key = keys[_i];
 	
-	      // setup
-	      for (var _key3 in refInfos) {
-	        var name = refInfos[_key3];
-	        // search in scopes
-	        var found = false;
-	        for (var _i2 = 0; _i2 < scopes.length; _i2++) {
-	          var _bindings = scopes[_i2];
-	          if (name in _bindings) {
-	            // found
+	        var _p = path.slice(0);
+	        _p.push(key);
+	        bindings[key] = _p;
+	
+	        var subState = obj[key];
+	        if (subState instanceof _state2.Reference) {
+	          var name = subState.name;
+	          // search in scopes
+	          var found = false;
+	          for (var _i2 = scopes.length - 1; _i2 >= 0; _i2--) {
+	            var _bindings = scopes[_i2];
+	            if (!(name in _bindings)) {
+	              continue;
+	            }
 	            found = true;
 	            var stopPath = _bindings[name].slice(0);
 	            // check loop
@@ -524,74 +474,87 @@
 	              }
 	            }
 	            if (sameLen == stopPath.length) {
-	              throw ['loop in $ref', path, stopPath];
+	              throw ['loop in reference', path, stopPath];
 	            }
 	            // setup getter and setter
-	            stopPath.pop();
-	            var stopLen = stopPath.length;
-	            var setupPath = path.slice(0);
-	            while (setupPath.length > stopLen) {
-	              setGetter(this.get(setupPath), _key3, _bindings[name]);
-	              setupPath.pop();
+	            if (subState instanceof _state2.WeakReference) {
+	              (function () {
+	                var from = _bindings[name];
+	                Object.defineProperty(obj, key, {
+	                  configurable: false,
+	                  enumerable: true,
+	                  get: function get() {
+	                    return app.get(from);
+	                  },
+	                  set: function set(v) {
+	                    app.update.apply(app, _toConsumableArray(from).concat([v]));
+	                  }
+	                });
+	                if (!obj.__aff_wo_ref_keys) {
+	                  Object.defineProperty(obj, '__aff_wo_ref_keys', {
+	                    configurable: false,
+	                    writable: true,
+	                    enumerable: false,
+	                    value: {}
+	                  });
+	                }
+	                obj.__aff_wo_ref_keys[key] = true;
+	              })();
+	            } else {
+	              stopPath.pop();
+	              var stopLen = stopPath.length;
+	              var setupPath = path.slice(0);
+	
+	              var _loop = function _loop() {
+	                var obj = _this.get(setupPath);
+	                var from = _bindings[name];
+	                var parentPathOfFrom = from.slice(0);
+	                parentPathOfFrom.pop();
+	                Object.defineProperty(obj, key, {
+	                  configurable: false,
+	                  enumerable: true,
+	                  get: function get() {
+	                    return app.get(from);
+	                  },
+	                  set: function set(v) {
+	                    app.update.apply(app, _toConsumableArray(from).concat([v]));
+	                  }
+	                });
+	                if (!obj.__aff_ref_keys) {
+	                  Object.defineProperty(obj, '__aff_ref_keys', {
+	                    configurable: false,
+	                    writable: true,
+	                    enumerable: false,
+	                    value: {}
+	                  });
+	                }
+	                obj.__aff_ref_keys[key] = from;
+	                setupPath.pop();
+	              };
+	
+	              while (setupPath.length > stopLen) {
+	                _loop();
+	              }
 	            }
+	            break; // stop searching
 	          }
-	        }
-	        if (!found) {
-	          throw ['no state named ' + name];
+	          if (!found) {
+	            throw ['no state named ' + name];
+	          }
+	        } else {
+	          subStateKeys.push(key);
 	        }
 	      }
 	
-	      // collect bindings
-	      var bindings = {};
-	      for (var _key4 in obj) {
-	        var _p = path.slice(0);
-	        _p.push(_key4);
-	        bindings[_key4] = _p;
-	      }
 	      scopes = scopes.slice(0); // copy
 	      scopes.push(bindings);
 	
-	      for (var _key5 in obj) {
-	        var subState = obj[_key5];
-	
-	        // setup updater
-	        if (subState instanceof _state2.Updater) {
-	          (function () {
-	            var name = subState.args[0];
-	            var updateArgs = subState.args.slice(1);
-	            // search update path
-	            var found = false;
-	            for (var _i3 = 0; _i3 < scopes.length; _i3++) {
-	              var _bindings2 = scopes[_i3];
-	              if (name in _bindings2) {
-	                var _ret2 = function () {
-	                  // found
-	                  found = true;
-	                  var updatePath = _bindings2[name].slice(0);
-	                  obj[_key5] = function () {
-	                    for (var _len2 = arguments.length, args = Array(_len2), _key6 = 0; _key6 < _len2; _key6++) {
-	                      args[_key6] = arguments[_key6];
-	                    }
-	
-	                    app.update.apply(app, _toConsumableArray(updatePath).concat(_toConsumableArray(updateArgs), args));
-	                  };
-	                  return 'break';
-	                }();
-	
-	                if (_ret2 === 'break') break;
-	              }
-	            }
-	            if (!found) {
-	              throw ['no state named ' + name];
-	            }
-	
-	            // setup sub state
-	          })();
-	        } else {
-	          var _p2 = path.slice(0);
-	          _p2.push(_key5);
-	          this.setupState(subState, _p2, scopes);
-	        }
+	      for (var _i3 = 0; _i3 < subStateKeys.length; _i3++) {
+	        var _key2 = subStateKeys[_i3];
+	        var _subState = obj[_key2];
+	        var _p2 = path.slice(0);
+	        _p2.push(_key2);
+	        this.setupState(_subState, _p2, scopes);
 	      }
 	    }
 	  }, {
@@ -612,8 +575,8 @@
 	  }, {
 	    key: 'dispatchEvent',
 	    value: function dispatchEvent(type) {
-	      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key7 = 1; _key7 < _len3; _key7++) {
-	        args[_key7 - 1] = arguments[_key7];
+	      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key3 = 1; _key3 < _len2; _key3++) {
+	        args[_key3 - 1] = arguments[_key3];
 	      }
 	
 	      for (var subtype in this.events[type]) {
@@ -623,8 +586,8 @@
 	  }, {
 	    key: 'update',
 	    value: function update() {
-	      for (var _len4 = arguments.length, args = Array(_len4), _key8 = 0; _key8 < _len4; _key8++) {
-	        args[_key8] = arguments[_key8];
+	      for (var _len3 = arguments.length, args = Array(_len3), _key4 = 0; _key4 < _len3; _key4++) {
+	        args[_key4] = arguments[_key4];
 	      }
 	
 	      return this.updateMulti(args);
@@ -636,8 +599,8 @@
 	        throw ['state not set'];
 	      }
 	
-	      for (var _len5 = arguments.length, args = Array(_len5), _key9 = 0; _key9 < _len5; _key9++) {
-	        args[_key9] = arguments[_key9];
+	      for (var _len4 = arguments.length, args = Array(_len4), _key5 = 0; _key5 < _len4; _key5++) {
+	        args[_key5] = arguments[_key5];
 	      }
 	
 	      for (var i = 0; i < args.length; i++) {
@@ -658,11 +621,22 @@
 	        this.updated = false;
 	        this.updateCount = 0;
 	        this._state.beforePatch();
-	        var result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
-	        this.element = result[0];
-	        this.node = result[1];
+	        if (!this.node) {
+	          // first render
+	          this.node = this.nodeFunc(this.state, this);
+	          var elem = this.node.toElement(this);
+	          if (this.element.parentNode) {
+	            this.element.parentNode.insertBefore(elem, this.element);
+	            this.element.parentNode.removeChild(this.element);
+	          }
+	          this.element = elem;
+	        } else {
+	          var result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
+	          this.element = result[0];
+	          this.node = result[1];
+	        }
 	        while (this.updated) {
-	          if (this.updateCount > 4096) {
+	          if (this.updateCount > 128) {
 	            // infinite loop
 	            throw ['infinite loop in updating', args];
 	          }
@@ -672,6 +646,12 @@
 	          var _result = this.patch(this.element, this.nodeFunc(this.state, this), this.node);
 	          this.element = _result[0];
 	          this.node = _result[1];
+	        }
+	        if (this.jobs.length > 0) {
+	          for (var _i4 = this.jobs.length - 1; _i4 >= 0; _i4--) {
+	            this.jobs[_i4]();
+	          }
+	          this.jobs = [];
 	        }
 	        this.patching = false;
 	        this.updateCount = 0;
@@ -690,8 +670,8 @@
 	  }, {
 	    key: 'get',
 	    value: function get() {
-	      for (var _len6 = arguments.length, args = Array(_len6), _key10 = 0; _key10 < _len6; _key10++) {
-	        args[_key10] = arguments[_key10];
+	      for (var _len5 = arguments.length, args = Array(_len5), _key6 = 0; _key6 < _len5; _key6++) {
+	        args[_key6] = arguments[_key6];
 	      }
 	
 	      var path = args;
@@ -710,9 +690,16 @@
 	  }, {
 	    key: 'patch',
 	    value: function patch(lastElement, node, lastNode) {
+	      if (!lastElement) {
+	        throw ['bad last element'];
+	      }
+	      if (!lastNode) {
+	        throw ['bad last node'];
+	      }
+	
 	      // thunk
 	      var lastThunk = void 0;
-	      if (lastNode && lastNode instanceof _nodes.Thunk) {
+	      if (lastNode instanceof _nodes.Thunk) {
 	        lastThunk = lastNode;
 	        lastNode = lastThunk.node;
 	      }
@@ -753,9 +740,7 @@
 	
 	      // check if patchable
 	      var patchable = true;
-	      if (!lastNode) {
-	        patchable = false;
-	      } else if (node.constructor != lastNode.constructor) {
+	      if (node.constructor != lastNode.constructor) {
 	        patchable = false;
 	      } else if (node instanceof _nodes.ElementNode && node.tag != lastNode.tag) {
 	        patchable = false;
@@ -763,14 +748,12 @@
 	      if (!patchable) {
 	        var element = node.toElement(this);
 	        // insert new then remove old
-	        if (lastElement && lastElement.parentNode) {
+	        if (lastElement.parentNode) {
 	          lastElement.parentNode.insertBefore(element, lastElement);
 	          lastElement.parentNode.removeChild(lastElement);
 	        }
 	        // cache lastElement
-	        if (lastNode) {
-	          this.cacheNode(lastElement, lastNode);
-	        }
+	        this.cacheNode(lastElement, lastNode);
 	
 	        return [element, node];
 	      }
@@ -800,175 +783,12 @@
 	        return [lastElement, node];
 	      }
 	
-	      // innerHTML
-	      if (node.innerHTML != lastNode.innerHTML) {
-	        lastElement.innerHTML = node.innerHTML;
-	      }
-	
-	      // id
-	      if (node.id != lastNode.id) {
-	        lastElement.id = node.id;
-	      }
-	
-	      // styles
-	      var styleType = _typeof(node.style);
-	      var lastStyleType = _typeof(lastNode.style);
-	      // different type, no diff
-	      if (styleType !== lastStyleType) {
-	        lastElement.style = undefined;
-	        if (styleType === 'string') {
-	          lastElement.style = node.style;
-	        } else if (styleType === 'object' && node.style !== null) {
-	          for (var key in node.style) {
-	            lastElement.style[key] = node.style[key];
-	          }
-	        }
-	      }
-	      // diff object
-	      else if (styleType === 'object') {
-	          if (node.style !== null) {
-	            for (var _key11 in node.style) {
-	              var updateStyle = false;
-	              if (!lastNode.style) {
-	                updateStyle = true;
-	              } else if (node.style[_key11] != lastNode.style[_key11]) {
-	                updateStyle = true;
-	              }
-	              if (updateStyle) {
-	                lastElement.style[_key11] = node.style[_key11];
-	              }
-	            }
-	          }
-	          if (lastNode.style !== null) {
-	            for (var _key12 in lastNode.style) {
-	              var clearStyle = false;
-	              if (!node.style) {
-	                clearStyle = true;
-	              } else if (!(_key12 in node.style)) {
-	                clearStyle = true;
-	              }
-	              if (clearStyle) {
-	                lastElement.style[_key12] = '';
-	              }
-	            }
-	          }
-	        }
-	        // string, compare
-	        else if (styleType === 'string') {
-	            if (node.style !== lastNode.style) {
-	              lastElement.style = node.style;
-	            }
-	          }
-	
-	      // class
-	      for (var _key13 in node.classList) {
-	        // should update
-	        var updateClass = false;
-	        if (!lastNode.classList) {
-	          updateClass = true;
-	        } else if (node.classList[_key13] != lastNode.classList[_key13]) {
-	          updateClass = true;
-	        }
-	        if (updateClass) {
-	          if (node.classList[_key13]) {
-	            lastElement.classList.add(_key13);
-	          } else {
-	            lastElement.classList.remove(_key13);
-	          }
-	        }
-	      }
-	      for (var _key14 in lastNode.classList) {
-	        var deleteClass = false;
-	        if (!node.classList) {
-	          deleteClass = true;
-	        } else if (!(_key14 in node.classList)) {
-	          deleteClass = true;
-	        }
-	        if (deleteClass) {
-	          lastElement.classList.remove(_key14);
-	        }
-	      }
-	
-	      // attributes
-	
-	      var _loop = function _loop(_key15) {
-	        var updateAttr = false;
-	        if (!lastNode.attributes) {
-	          updateAttr = true;
-	        } else if (node.attributes[_key15] != lastNode.attributes[_key15]) {
-	          updateAttr = true;
-	        }
-	        if (updateAttr) {
-	          (function () {
-	            var value = node.attributes[_key15];
-	            var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
-	            var isStringOrNumber = false;
-	            if (valueType === 'string') {
-	              isStringOrNumber = true;
-	            } else if (valueType === 'number') {
-	              isStringOrNumber = true;
-	            }
-	            if (isStringOrNumber) {
-	              lastElement.setAttribute(_key15, value);
-	              lastElement[_key15] = value;
-	            } else if (valueType == 'boolean') {
-	              var set = function set() {
-	                if (value) {
-	                  lastElement.setAttribute(_key15, true);
-	                  lastElement[_key15] = true;
-	                } else {
-	                  lastElement.removeAttribute(_key15);
-	                  lastElement[_key15] = false;
-	                }
-	              };
-	              if (lastElement.tagName === 'INPUT' && lastElement.type == 'checkbox') {
-	                setTimeout(set, 0);
-	              } else {
-	                set();
-	              }
-	            }
-	          })();
-	        }
-	      };
-	
-	      for (var _key15 in node.attributes) {
-	        _loop(_key15);
-	      }
-	      for (var _key16 in lastNode.attributes) {
-	        var removeAttr = false;
-	        if (!node.attributes) {
-	          removeAttr = true;
-	        } else if (!(_key16 in node.attributes)) {
-	          removeAttr = true;
-	        }
-	        if (removeAttr) {
-	          lastElement.removeAttribute(_key16);
-	          lastElement[_key16] = undefined;
-	        }
-	      }
-	
-	      // events
-	      var eventKeys = {};
-	      for (var _key17 in node.events) {
-	        var k = (0, _event.elementSetEvent)(lastElement, _key17, node.events[_key17].bind(node));
-	        eventKeys[k] = true;
-	      }
-	      if (lastElement.__aff_events) {
-	        for (var type in lastElement.__aff_events) {
-	          for (var subtype in lastElement.__aff_events[type]) {
-	            if (!(type + ':' + subtype in eventKeys)) {
-	              delete lastElement.__aff_events[type][subtype];
-	            }
-	          }
-	        }
-	      }
-	
 	      // children
 	      var childElements = lastElement.childNodes;
 	      var childLen = node.children ? node.children.length : 0;
 	      for (var i = 0; i < childLen; i++) {
 	        var child = node.children[i];
-	        if (child.key && lastNode && lastNode.children && lastNode.children[i] && lastNode.children[i].key != child.key) {
+	        if (child.key && lastNode.children && lastNode.children[i] && lastNode.children[i].key != child.key) {
 	          // keyed
 	          // search for same key
 	          var found = false;
@@ -983,7 +803,7 @@
 	              }
 	              childElements = lastElement.childNodes;
 	              // patch
-	              var result = this.patch(childElements[i], child, lastNode.children[i]);
+	              this.patch(childElements[i], child, lastNode.children[i]);
 	              break;
 	            }
 	          }
@@ -996,25 +816,190 @@
 	          }
 	        } else {
 	          // not keyed
-	          var _result2 = this.patch(childElements[i], child, lastNode && lastNode.children ? lastNode.children[i] : null);
-	          var _elem2 = _result2[0];
 	          if (!childElements[i]) {
+	            var _elem2 = child.toElement(this);
 	            lastElement.appendChild(_elem2);
+	          } else {
+	            this.patch(childElements[i], child, lastNode.children[i]);
 	          }
 	        }
 	      }
-	      var lastChildLen = lastNode && lastNode.children ? lastNode.children.length : 0;
-	      for (var _i4 = childLen; _i4 < lastChildLen; _i4++) {
+	      var lastChildLen = lastNode.children ? lastNode.children.length : 0;
+	      for (var _i5 = childLen; _i5 < lastChildLen; _i5++) {
 	        var _elem3 = lastElement.removeChild(lastElement.childNodes[childLen]);
-	        this.cacheNode(_elem3, lastNode.children[_i4]);
+	        this.cacheNode(_elem3, lastNode.children[_i5]);
 	      }
 	
-	      // hook
-	      if (node.hooks && node.hooks.patched) {
-	        node.hooks.patched.forEach(function (fn) {
-	          return fn(lastElement);
-	        });
-	      }
+	      this.jobs.push(function () {
+	
+	        // innerHTML
+	        if (node.innerHTML != lastNode.innerHTML) {
+	          lastElement.innerHTML = node.innerHTML;
+	        }
+	
+	        // attributes
+	
+	        var _loop2 = function _loop2(key) {
+	          var updateAttr = false;
+	          if (!lastNode.attributes) {
+	            updateAttr = true;
+	          } else if (node.attributes[key] != lastNode.attributes[key]) {
+	            updateAttr = true;
+	          }
+	          if (updateAttr) {
+	            var value = node.attributes[key];
+	            var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+	            var isStringOrNumber = false;
+	            if (valueType === 'string') {
+	              isStringOrNumber = true;
+	            } else if (valueType === 'number') {
+	              isStringOrNumber = true;
+	            }
+	            if (isStringOrNumber) {
+	              lastElement.setAttribute(key, value);
+	              lastElement[key] = value;
+	            } else if (valueType == 'boolean') {
+	              var set = function set() {
+	                if (value) {
+	                  lastElement.setAttribute(key, true);
+	                  lastElement[key] = true;
+	                } else {
+	                  lastElement.removeAttribute(key);
+	                  lastElement[key] = false;
+	                }
+	              };
+	              if (lastElement.tagName === 'INPUT' && lastElement.type == 'checkbox') {
+	                setTimeout(set, 0);
+	              } else {
+	                set();
+	              }
+	            }
+	          }
+	        };
+	
+	        for (var key in node.attributes) {
+	          _loop2(key);
+	        }
+	        for (var key in lastNode.attributes) {
+	          var removeAttr = false;
+	          if (!node.attributes) {
+	            removeAttr = true;
+	          } else if (!(key in node.attributes)) {
+	            removeAttr = true;
+	          }
+	          if (removeAttr) {
+	            lastElement.removeAttribute(key);
+	            lastElement[key] = undefined;
+	          }
+	        }
+	
+	        // events
+	        var eventKeys = {};
+	        for (var _key7 in node.events) {
+	          var k = (0, _event.elementSetEvent)(lastElement, _key7, node.events[_key7].bind(node));
+	          eventKeys[k] = true;
+	        }
+	        if (lastElement.__aff_events) {
+	          for (var type in lastElement.__aff_events) {
+	            for (var subtype in lastElement.__aff_events[type]) {
+	              if (!(type + ':' + subtype in eventKeys)) {
+	                delete lastElement.__aff_events[type][subtype];
+	              }
+	            }
+	          }
+	        }
+	
+	        // id
+	        if (node.id != lastNode.id) {
+	          lastElement.id = node.id;
+	        }
+	
+	        // class
+	        for (var _key8 in node.classList) {
+	          // should update
+	          var updateClass = false;
+	          if (!lastNode.classList) {
+	            updateClass = true;
+	          } else if (node.classList[_key8] != lastNode.classList[_key8]) {
+	            updateClass = true;
+	          }
+	          if (updateClass) {
+	            if (node.classList[_key8]) {
+	              lastElement.classList.add(_key8);
+	            } else {
+	              lastElement.classList.remove(_key8);
+	            }
+	          }
+	        }
+	        for (var _key9 in lastNode.classList) {
+	          var deleteClass = false;
+	          if (!node.classList) {
+	            deleteClass = true;
+	          } else if (!(_key9 in node.classList)) {
+	            deleteClass = true;
+	          }
+	          if (deleteClass) {
+	            lastElement.classList.remove(_key9);
+	          }
+	        }
+	
+	        // styles
+	        var styleType = _typeof(node.style);
+	        var lastStyleType = _typeof(lastNode.style);
+	        // different type, no diff
+	        if (styleType !== lastStyleType) {
+	          lastElement.style = undefined;
+	          if (styleType === 'string') {
+	            lastElement.style = node.style;
+	          } else if (styleType === 'object' && node.style !== null) {
+	            for (var _key10 in node.style) {
+	              lastElement.style[_key10] = node.style[_key10];
+	            }
+	          }
+	        }
+	        // diff object
+	        else if (styleType === 'object') {
+	            if (node.style !== null) {
+	              for (var _key11 in node.style) {
+	                var updateStyle = false;
+	                if (!lastNode.style) {
+	                  updateStyle = true;
+	                } else if (node.style[_key11] != lastNode.style[_key11]) {
+	                  updateStyle = true;
+	                }
+	                if (updateStyle) {
+	                  lastElement.style[_key11] = node.style[_key11];
+	                }
+	              }
+	            }
+	            if (lastNode.style !== null) {
+	              for (var _key12 in lastNode.style) {
+	                var clearStyle = false;
+	                if (!node.style) {
+	                  clearStyle = true;
+	                } else if (!(_key12 in node.style)) {
+	                  clearStyle = true;
+	                }
+	                if (clearStyle) {
+	                  lastElement.style[_key12] = '';
+	                }
+	              }
+	            }
+	          }
+	          // string, compare
+	          else if (styleType === 'string') {
+	              if (node.style !== lastNode.style) {
+	                lastElement.style = node.style;
+	              }
+	            }
+	
+	        // hook
+	        if (node.hooks && node.hooks.patched) {
+	          node.hooks.patched.forEach(function (fn) {
+	            return fn(lastElement);
+	          });
+	        }
+	      }); // push job
 	
 	      return [lastElement, node];
 	    }
@@ -1200,20 +1185,21 @@
 	    }
 	  }, {
 	    key: 'updateState',
-	    value: function updateState(basePath, obj) {
+	    value: function updateState(statePath, object) {
 	      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
 	        args[_key2 - 2] = arguments[_key2];
 	      }
 	
 	      var _this2 = this;
 	
+	      var obj = object;
 	      if (args.length === 0) {
 	        return obj;
 	      } else if (args.length === 1) {
 	        var ret = void 0;
 	        if (_typeof(args[0]) === 'object' && args[0] !== null && args[0].__is_op) {
 	          ret = args[0].apply(obj, this);
-	          if (ret === obj) {
+	          if ((typeof ret === 'undefined' ? 'undefined' : _typeof(ret)) === 'object' && ret !== null && ret === obj) {
 	            this.setupPatchTick(ret);
 	            ret.__aff_tick = this.patchTick + 1;
 	          }
@@ -1225,7 +1211,7 @@
 	          // re-setup arrays conservatively
 	          forceSetup = true;
 	        }
-	        this.setupState(ret, basePath, forceSetup);
+	        this.setupState(ret, statePath, forceSetup);
 	        if ((typeof ret === 'undefined' ? 'undefined' : _typeof(ret)) === 'object' && ret !== null && !ret.hasOwnProperty('__aff_tick')) {
 	          this.setupPatchTick(ret);
 	          ret.__aff_tick = this.patchTick + 1;
@@ -1238,18 +1224,22 @@
 	        if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && obj !== null) {
 	          if (!obj.hasOwnProperty('__aff_tick')) {
 	            this.setupPatchTick(obj);
-	            obj.__aff_tick = this.patchTick + 1;
 	          }
+	          var updated = false;
 	          var updateKey = function updateKey(key) {
 	            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
 	              args[_key3 - 1] = arguments[_key3];
 	            }
 	
-	            var path = basePath.slice(0);
+	            var oldValue = obj[key];
+	            var path = statePath.slice(0);
 	            path.push(key);
 	            var value = _this2.updateState.apply(_this2, [path].concat(args));
 	            obj[key] = value;
-	            if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object') {
+	            if (oldValue != value) {
+	              updated = true;
+	            }
+	            if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object' && updated) {
 	              obj.__aff_sub_tick[key] = _this2.patchTick + 1;
 	            }
 	          };
@@ -1277,7 +1267,9 @@
 	          if (match) {
 	            updateKey.apply(undefined, [key, undefined].concat(_toConsumableArray(args.slice(1))));
 	          }
-	          obj.__aff_tick = this.patchTick + 1;
+	          if (updated) {
+	            obj.__aff_tick = this.patchTick + 1;
+	          }
 	          return obj;
 	        } else {
 	          throw ['bad update path', obj, args];
@@ -1295,8 +1287,7 @@
 	      Object.defineProperty(obj, '__aff_tick', {
 	        configurable: false,
 	        enumerable: false,
-	        writable: true,
-	        value: this.patchTick + 1
+	        writable: true
 	      });
 	      Object.defineProperty(obj, '__aff_sub_tick', {
 	        configurable: false,
@@ -1377,6 +1368,9 @@
 	              return true;
 	            }
 	            for (var _key5 in arg) {
+	              if (arg.__aff_wo_ref_keys && arg.__aff_wo_ref_keys[_key5]) {
+	                continue;
+	              }
 	              if (this.argsChanged(arg[_key5], lastArg[_key5])) {
 	                return true;
 	              }
@@ -1384,24 +1378,22 @@
 	          }
 	
 	          // function
-	          else if (argType === 'function') {
-	              if (arg.name !== lastArg.name) {
-	                return true;
-	              }
-	            }
+	          //else if (argType === 'function') {
+	          //  if (arg.name !== lastArg.name) {
+	          //    return true;
+	          //  }
+	          //}
 	
-	            // compare
-	            else if (arg !== lastArg) {
-	                return true;
-	              }
+	          // compare
+	          else if (arg !== lastArg) {
+	              return true;
+	            }
 	
 	      return false;
 	    }
 	  }, {
 	    key: 'setupState',
-	    value: function setupState(state, basePath, forceSetup) {
-	      var _this3 = this;
-	
+	    value: function setupState(state, statePath, forceSetup) {
 	      if ((typeof state === 'undefined' ? 'undefined' : _typeof(state)) != 'object') {
 	        return;
 	      } else if (state === null) {
@@ -1417,40 +1409,56 @@
 	        needSetup = true;
 	      }
 	      if (needSetup) {
-	        (function () {
-	          // set
-	          var app = _this3.app;
-	          Object.defineProperty(state, '$update', {
-	            configurable: false,
-	            enumerable: false,
-	            writable: true,
-	            value: function value() {
-	              for (var _len4 = arguments.length, args = Array(_len4), _key6 = 0; _key6 < _len4; _key6++) {
-	                args[_key6] = arguments[_key6];
-	              }
-	
-	              app.update.apply(app, _toConsumableArray(state.$path).concat(args));
-	              return app.get(state.$path);
+	        // set
+	        var app = this.app;
+	        Object.defineProperty(state, '$update', {
+	          configurable: false,
+	          enumerable: false,
+	          writable: true,
+	          value: function value() {
+	            for (var _len4 = arguments.length, args = Array(_len4), _key6 = 0; _key6 < _len4; _key6++) {
+	              args[_key6] = arguments[_key6];
 	            }
-	          });
-	          Object.defineProperty(state, '$path', {
-	            configurable: false,
-	            enumerable: false,
-	            writable: true,
-	            value: basePath.slice(0)
-	          });
-	        })();
+	
+	            app.update.apply(app, _toConsumableArray(state.$path).concat(args));
+	          }
+	        });
+	        Object.defineProperty(state, '$updateMulti', {
+	          configurable: false,
+	          enumerable: false,
+	          writable: true,
+	          value: function value() {
+	            for (var _len5 = arguments.length, args = Array(_len5), _key7 = 0; _key7 < _len5; _key7++) {
+	              args[_key7] = arguments[_key7];
+	            }
+	
+	            var expanded = args.map(function (arg) {
+	              return [].concat(_toConsumableArray(state.$path), _toConsumableArray(arg));
+	            });
+	            app.updateMulti.apply(app, _toConsumableArray(expanded));
+	          }
+	        });
+	        Object.defineProperty(state, '$path', {
+	          configurable: false,
+	          enumerable: false,
+	          writable: true,
+	          value: statePath.slice(0)
+	        });
 	      } else {
-	        if (!state.$path.reduce(function (acc, cur, i) {
-	          return acc && cur == basePath[i];
-	        }, true)) {
-	          throw ['cannot change state object path', basePath.slice(0), state.$path];
+	        // no need to setup accessors, check path
+	        if (this.app.get(statePath) !== state) {
+	          // setting new state
+	          if (!state.$path.reduce(function (acc, cur, i) {
+	            return acc && cur == statePath[i];
+	          }, true)) {
+	            throw ['cannot change state object path', statePath.slice(0), state.$path];
+	          }
 	        }
 	      }
 	
 	      // recursively
 	      for (var key in state) {
-	        var subPath = basePath.slice(0);
+	        var subPath = statePath.slice(0);
 	        subPath.push(key);
 	        this.setupState(state[key], subPath, forceSetup);
 	      }
@@ -1475,8 +1483,14 @@
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	exports.readOnly = readOnly;
-	exports.Updater = Updater;
-	exports.updater = updater;
+	exports.ref = ref;
+	exports.weakRef = weakRef;
+	exports.cached = cached;
+	exports.wrap = wrap;
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -1515,16 +1529,48 @@
 	  return obj;
 	}
 	
-	function Updater(args) {
-	  this.args = args;
+	var Reference = exports.Reference = function Reference(name) {
+	  _classCallCheck(this, Reference);
+	
+	  this.name = name;
+	};
+	
+	function ref(name) {
+	  return new Reference(name);
 	}
 	
-	function updater() {
-	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	    args[_key] = arguments[_key];
+	var WeakReference = exports.WeakReference = function (_Reference) {
+	  _inherits(WeakReference, _Reference);
+	
+	  function WeakReference(name) {
+	    _classCallCheck(this, WeakReference);
+	
+	    return _possibleConstructorReturn(this, (WeakReference.__proto__ || Object.getPrototypeOf(WeakReference)).call(this, name));
 	  }
 	
-	  return new Updater(args);
+	  return WeakReference;
+	}(Reference);
+	
+	function weakRef(name) {
+	  return new WeakReference(name);
+	}
+	
+	function cached(fn) {
+	  var results = {};
+	  return function (arg) {
+	    if (!(arg in results)) {
+	      results[arg] = fn.call(this, arg);
+	    }
+	    return results[arg];
+	  };
+	};
+	
+	function wrap(obj, props) {
+	  var wrapped = Object.create(obj);
+	  for (var key in props) {
+	    wrapped[key] = props[key];
+	  }
+	  return wrapped;
 	}
 
 /***/ },
@@ -1589,32 +1635,24 @@
 	  _createClass(ElementNode, [{
 	    key: 'toElement',
 	    value: function toElement(app) {
-	      var _this2 = this;
-	
 	      var element = void 0;
 	      // use cached element
 	      if (app && app.elementCache[this.tag] && app.elementCache[this.tag].length > 0) {
-	        var _ret = function () {
-	          if (app) {
-	            app.counters.nodeCacheHit++;
-	          }
-	          var result = app.elementCache[_this2.tag].shift();
-	          var element = result[0];
-	          var lastNode = result[1];
-	          result = app.patchNode(element, _this2, lastNode);
-	          element = result[0];
-	          _this2.element = element;
-	          if (_this2.hooks && _this2.hooks.created) {
-	            _this2.hooks.created.forEach(function (fn) {
-	              return fn(element);
-	            });
-	          }
-	          return {
-	            v: element
-	          };
-	        }();
-	
-	        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+	        if (app) {
+	          app.counters.nodeCacheHit++;
+	        }
+	        var result = app.elementCache[this.tag].shift();
+	        var _element = result[0];
+	        var lastNode = result[1];
+	        result = app.patchNode(_element, this, lastNode);
+	        _element = result[0];
+	        this.element = _element;
+	        if (this.hooks && this.hooks.created) {
+	          this.hooks.created.forEach(function (fn) {
+	            return fn(_element);
+	          });
+	        }
+	        return _element;
 	      }
 	      element = document.createElement(this.tag);
 	      if (app) {
@@ -1847,10 +1885,10 @@
 	  function TextNode() {
 	    _classCallCheck(this, TextNode);
 	
-	    var _this3 = _possibleConstructorReturn(this, (TextNode.__proto__ || Object.getPrototypeOf(TextNode)).call(this));
+	    var _this2 = _possibleConstructorReturn(this, (TextNode.__proto__ || Object.getPrototypeOf(TextNode)).call(this));
 	
-	    _this3.text = null;
-	    return _this3;
+	    _this2.text = null;
+	    return _this2;
 	  }
 	
 	  _createClass(TextNode, [{
@@ -1884,10 +1922,10 @@
 	  function CommentNode() {
 	    _classCallCheck(this, CommentNode);
 	
-	    var _this4 = _possibleConstructorReturn(this, (CommentNode.__proto__ || Object.getPrototypeOf(CommentNode)).call(this));
+	    var _this3 = _possibleConstructorReturn(this, (CommentNode.__proto__ || Object.getPrototypeOf(CommentNode)).call(this));
 	
-	    _this4.text = null;
-	    return _this4;
+	    _this3.text = null;
+	    return _this3;
 	  }
 	
 	  _createClass(CommentNode, [{
@@ -1921,14 +1959,14 @@
 	  function Thunk() {
 	    _classCallCheck(this, Thunk);
 	
-	    var _this5 = _possibleConstructorReturn(this, (Thunk.__proto__ || Object.getPrototypeOf(Thunk)).call(this));
+	    var _this4 = _possibleConstructorReturn(this, (Thunk.__proto__ || Object.getPrototypeOf(Thunk)).call(this));
 	
-	    _this5.func = null;
-	    _this5.args = null;
-	    _this5.node = undefined;
-	    _this5.name = null;
-	    _this5.key = null;
-	    return _this5;
+	    _this4.func = null;
+	    _this4.args = null;
+	    _this4.node = undefined;
+	    _this4.name = null;
+	    _this4.key = null;
+	    return _this4;
 	  }
 	
 	  _createClass(Thunk, [{
@@ -2123,6 +2161,353 @@
 
 /***/ },
 /* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _templateObject = _taggedTemplateLiteral(['\n      list-style: none;\n    '], ['\n      list-style: none;\n    ']),
+	    _templateObject2 = _taggedTemplateLiteral(['.tab-item-', ''], ['.tab-item-', '']),
+	    _templateObject3 = _taggedTemplateLiteral(['\n          background-color: ', ';\n          padding: 5px;\n          user-select: none;\n          cursor: pointer;\n        '], ['\n          background-color: ', ';\n          padding: 5px;\n          user-select: none;\n          cursor: pointer;\n        ']),
+	    _templateObject4 = _taggedTemplateLiteral(['\n      background-color: ', ';\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      min-width: ', ';\n      margin: 0;\n      text-align: center;\n      left: 0;\n    '], ['\n      background-color: ', ';\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      min-width: ', ';\n      margin: 0;\n      text-align: center;\n      left: 0;\n    ']),
+	    _templateObject5 = _taggedTemplateLiteral([' font-weight: bold '], [' font-weight: bold ']),
+	    _templateObject6 = _taggedTemplateLiteral(['\n        position: absolute;\n        left: 0;\n        right: 0;\n        bottom: 0;\n      '], ['\n        position: absolute;\n        left: 0;\n        right: 0;\n        bottom: 0;\n      ']),
+	    _templateObject7 = _taggedTemplateLiteral(['\n      background-color: ', ';\n      position: absolute;\n      left: ', ';\n      right: 0;\n      bottom: 0;\n      height: ', ';\n      font-size: 1em;\n      line-height: 1em;\n    '], ['\n      background-color: ', ';\n      position: absolute;\n      left: ', ';\n      right: 0;\n      bottom: 0;\n      height: ', ';\n      font-size: 1em;\n      line-height: 1em;\n    ']),
+	    _templateObject8 = _taggedTemplateLiteral(['#main'], ['#main']),
+	    _templateObject9 = _taggedTemplateLiteral(['\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      left: ', ';\n      right: 0;\n      top: 0;\n      bottom: ', ';\n      border-left: 1px solid #CCC;\n      border-bottom: 1px solid #CCC;\n      overflow: auto;\n    '], ['\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      left: ', ';\n      right: 0;\n      top: 0;\n      bottom: ', ';\n      border-left: 1px solid #CCC;\n      border-bottom: 1px solid #CCC;\n      overflow: auto;\n    ']),
+	    _templateObject10 = _taggedTemplateLiteral([' \n      text-align: center; \n      border-bottom: 1px solid #CCC;\n      font-weight: bold;\n      margin-bottom: 3px;\n    '], [' \n      text-align: center; \n      border-bottom: 1px solid #CCC;\n      font-weight: bold;\n      margin-bottom: 3px;\n    ']),
+	    _templateObject11 = _taggedTemplateLiteral(['\n      height: 10vh;\n    '], ['\n      height: 10vh;\n    ']),
+	    _templateObject12 = _taggedTemplateLiteral(['\n        position: fixed;\n        top: ', ';\n        left: ', ';\n        right: ', ';\n        bottom: ', ';\n        border: 1px solid #666;\n        background-color: white;\n        margin: 1px;\n        font-size: 12px;\n        z-index: 9999;\n        color: #333;\n      '], ['\n        position: fixed;\n        top: ', ';\n        left: ', ';\n        right: ', ';\n        bottom: ', ';\n        border: 1px solid #666;\n        background-color: white;\n        margin: 1px;\n        font-size: 12px;\n        z-index: 9999;\n        color: #333;\n      ']),
+	    _templateObject13 = _taggedTemplateLiteral(['\n      padding: 0 10px;\n    '], ['\n      padding: 0 10px;\n    ']),
+	    _templateObject14 = _taggedTemplateLiteral(['\n      margin: 0 auto;\n      min-width: 100%;\n      border-collapse: collapse;\n      text-align: center;\n    '], ['\n      margin: 0 auto;\n      min-width: 100%;\n      border-collapse: collapse;\n      text-align: center;\n    ']),
+	    _templateObject15 = _taggedTemplateLiteral(['\n            border: 1px solid #AAA;\n          '], ['\n            border: 1px solid #AAA;\n          ']),
+	    _templateObject16 = _taggedTemplateLiteral(['\n            background-color: #EEFFEE;\n            padding: 0 10px;\n            vertical-align: top;\n          '], ['\n            background-color: #EEFFEE;\n            padding: 0 10px;\n            vertical-align: top;\n          ']),
+	    _templateObject17 = _taggedTemplateLiteral(['.state-value'], ['.state-value']),
+	    _templateObject18 = _taggedTemplateLiteral(['\n            padding: 1px;\n          '], ['\n            padding: 1px;\n          ']),
+	    _templateObject19 = _taggedTemplateLiteral(['\n      padding-left: 5px;\n    '], ['\n      padding-left: 5px;\n    ']),
+	    _templateObject20 = _taggedTemplateLiteral(['#clear-updates'], ['#clear-updates']),
+	    _templateObject21 = _taggedTemplateLiteral(['', ''], ['', '']),
+	    _templateObject22 = _taggedTemplateLiteral(['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    '], ['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    ']),
+	    _templateObject23 = _taggedTemplateLiteral(['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      '], ['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      ']),
+	    _templateObject24 = _taggedTemplateLiteral(['\n        float: left;\n      '], ['\n        float: left;\n      ']),
+	    _templateObject25 = _taggedTemplateLiteral(['\n          padding: 0 10px;\n          color: #AAA;\n        '], ['\n          padding: 0 10px;\n          color: #AAA;\n        ']),
+	    _templateObject26 = _taggedTemplateLiteral(['\n        text-decoration: underline;\n      '], ['\n        text-decoration: underline;\n      ']),
+	    _templateObject27 = _taggedTemplateLiteral(['#close-debug-panel'], ['#close-debug-panel']),
+	    _templateObject28 = _taggedTemplateLiteral(['\n      margin: 10px 0;\n    '], ['\n      margin: 10px 0;\n    ']),
+	    _templateObject29 = _taggedTemplateLiteral(['#panel-position-', ''], ['#panel-position-', '']),
+	    _templateObject30 = _taggedTemplateLiteral(['\n        font-size: 10px;\n        width: 3em;\n      '], ['\n        font-size: 10px;\n        width: 3em;\n      ']);
+	
+	exports.DebugPanel = DebugPanel;
+	
+	var _app = __webpack_require__(2);
+	
+	var _nodes = __webpack_require__(7);
+	
+	var _tagged = __webpack_require__(8);
+	
+	var _event = __webpack_require__(4);
+	
+	var _operations = __webpack_require__(10);
+	
+	var _tags = __webpack_require__(11);
+	
+	var _state = __webpack_require__(6);
+	
+	function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	
+	var logSerial = 0;
+	
+	function DebugPanel(app, initState) {
+	
+	  // check state
+	  var debugState = app.state.__debug_panel;
+	  if (!debugState) {
+	    app.update('__debug_panel', {});
+	    debugState = app.state.__debug_panel;
+	  }
+	
+	  // init
+	  if (!debugState.initialized) {
+	    // hotkey
+	    document.addEventListener('keypress', function (ev) {
+	      if (ev.keyCode != 17 || !ev.ctrlKey) {
+	        return;
+	      }
+	      debugState.$update('show', (0, _operations.$func)(function (v) {
+	        return !v;
+	      }));
+	    });
+	
+	    // updates logging
+	    var logState = debugState.updates;
+	    if (!logState) {
+	      debugState.$update('updates', []);
+	      logState = debugState.updates;
+	    }
+	    app.init((0, _event.on)('afterUpdate: aff logging log updates', function (state) {
+	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        args[_key - 1] = arguments[_key];
+	      }
+	
+	      // to prevent recursive logging
+	      var ignore = logState.$path.reduce(function (acc, cur, i) {
+	        return acc && cur == args[i];
+	      }, true);
+	      if (!ignore) {
+	        logState.$update((0, _operations.$push)({
+	          args: (0, _state.readOnly)(args),
+	          tick: state.__aff_tick,
+	          key: logSerial
+	        }));
+	        logSerial++;
+	      }
+	    }));
+	
+	    // init state
+	    if (initState) {
+	      debugState.$update((0, _operations.$merge)(initState));
+	    }
+	    debugState.$update('initialized', true);
+	  }
+	
+	  if (!debugState.show) {
+	    return [];
+	  }
+	
+	  // styles
+	  var panelBackgroundColor = '#EEE';
+	  var leftPanelWidth = '10vw';
+	  var bottomPanelHeight = '1em';
+	
+	  // tabs
+	  if (debugState.selectedTab === undefined) {
+	    debugState.$update('selectedTab', 'state');
+	  }
+	  var Tabs = (0, _nodes.t)(function (debugState) {
+	    return (0, _tags.div)((0, _tagged.css)(_templateObject), [{ name: 'index' }, { name: 'state' }, { name: 'updates' }].map(function (info) {
+	      return (0, _tags.div)((0, _tagged.$)(_templateObject2, info.name), info.name, (0, _tagged.css)(_templateObject3, debugState.selectedTab === info.name ? '#DDD' : 'transparent'), (0, _event.on)('click', function () {
+	        debugState.$update('selectedTab', info.name);
+	      }));
+	    }));
+	  }, debugState);
+	
+	  var LeftPanel = (0, _tags.div)((0, _tagged.css)(_templateObject4, panelBackgroundColor, leftPanelWidth), (0, _tags.p)((0, _tagged.css)(_templateObject5), 'Debug Panel'), Tabs,
+	
+	  // lower left
+	  (0, _tags.div)((0, _tagged.css)(_templateObject6), PanelPosition(debugState), CloseButton(debugState)));
+	
+	  var BottomPanel = (0, _tags.div)((0, _tagged.css)(_templateObject7, panelBackgroundColor, leftPanelWidth, bottomPanelHeight), (0, _nodes.t)(PointingPath, debugState.pointingPath));
+	
+	  var MainContent = (0, _nodes.t)(function (debugState, appState) {
+	    return (0, _tags.div)((0, _tagged.$)(_templateObject8), (0, _tagged.css)(_templateObject9, leftPanelWidth, bottomPanelHeight), (0, _tags.div)(debugState.selectedTab, (0, _tagged.css)(_templateObject10)), function () {
+	      // scroll to top when switching tab
+	      var lastTab = debugState.lastTab;
+	      if (debugState.selectedTab != lastTab) {
+	        var elem = document.querySelector('#main') || window;
+	        elem.scrollTop = 0;
+	        debugState.$update('lastTab', debugState.selectedTab);
+	      }
+	
+	      if (debugState.selectedTab === 'state') {
+	        return (0, _nodes.t)(AppState, appState, debugState);
+	      } else if (debugState.selectedTab === 'updates') {
+	        return (0, _nodes.t)(Updates, debugState.updates, debugState.$path);
+	      }
+	
+	      return _tags.none;
+	    }, (0, _tags.div)((0, _tagged.css)(_templateObject11)));
+	  }, debugState, app.state);
+	
+	  return [
+	
+	  // ui
+	  (0, _tags.div)((0, _tagged.css)(_templateObject12, debugState.top || 0, debugState.left || 0, debugState.right || 0, debugState.bottom || 0), LeftPanel, BottomPanel, MainContent)];
+	}
+	
+	function AppState(appState, debugState) {
+	  return (0, _tags.div)((0, _tagged.css)(_templateObject13), (0, _nodes.t)(StateNode, appState, [], debugState));
+	}
+	
+	function StateNode(appState) {
+	  var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+	  var debugState = arguments[2];
+	
+	  return (0, _nodes.t)(function (appState, path) {
+	    return (0, _tags.table)((0, _tagged.css)(_templateObject14), function () {
+	      var ret = [];
+	      var keys = Object.keys(appState);
+	      keys.sort(function (a, b) {
+	        return a > b;
+	      });
+	      var isArray = Array.isArray(appState);
+	
+	      var _loop = function _loop(i) {
+	        var key = keys[i];
+	        if (appState[key] === debugState) {
+	          // skip debug state
+	          return 'continue';
+	        }
+	        if (key.charAt(0) >= 'A' && key.charAt(0) <= 'Z') {
+	          // skip component state
+	          return 'continue';
+	        }
+	        var valueNode = void 0;
+	        if (_typeof(appState[key]) === 'object') {
+	          var subpath = path.slice(0);
+	          subpath.push(key);
+	          valueNode = (0, _nodes.t)(StateNode, appState[key], subpath, debugState);
+	        } else {
+	          valueNode = appState[key].toString();
+	        }
+	
+	        var bindPointingPath = [(0, _event.on)('mouseenter', function () {
+	          var pointingPath = path.slice(0);
+	          pointingPath.push(key);
+	          debugState.$update('pointingPath', pointingPath);
+	        }), (0, _event.on)('mouseleave', function () {
+	          debugState.$update('pointingPath', false);
+	        })];
+	
+	        ret.push((0, _tags.tr)((0, _tagged.css)(_templateObject15), bindPointingPath,
+	        // key
+	        isArray ? null : (0, _tags.td)(key, (0, _tagged.css)(_templateObject16), bindPointingPath),
+	        // value
+	        (0, _tags.td)((0, _tagged.$)(_templateObject17), valueNode, (0, _tagged.css)(_templateObject18), bindPointingPath)));
+	      };
+	
+	      for (var i = 0; i < keys.length; i++) {
+	        var _ret = _loop(i);
+	
+	        if (_ret === 'continue') continue;
+	      }
+	      return ret;
+	    });
+	  }, appState, path);
+	}
+	
+	function PointingPath(path) {
+	  if (!path) {
+	    return _tags.none;
+	  }
+	  return (0, _tags.div)('POINTING PATH: ', path.map(function (key) {
+	    return (0, _tags.span)(key, (0, _tagged.css)(_templateObject19));
+	  }));
+	}
+	
+	function Updates(updates, debugStatePath) {
+	  return (0, _tags.div)((0, _tagged.css)(_templateObject13), (0, _tags.button)((0, _tagged.$)(_templateObject20), 'Clear', (0, _event.on)('click', function () {
+	    updates.$update([]);
+	  })), function () {
+	    var ret = [];
+	
+	    var _loop2 = function _loop2(i) {
+	      var log = updates[i];
+	      var ignore = debugStatePath.reduce(function (acc, cur, i) {
+	        return acc && cur == log.args[i];
+	      }, true);
+	      // ignore debug panel updates
+	      if (ignore) {
+	        return 'continue';
+	      }
+	
+	      ret.push((0, _nodes.t)(UpdateLogEntry, (0, _tagged.key)(_templateObject21, log.key), log));
+	    };
+	
+	    for (var i = updates.length - 1; i >= 0; i--) {
+	      var _ret2 = _loop2(i);
+	
+	      if (_ret2 === 'continue') continue;
+	    }
+	    return ret;
+	  });
+	}
+	
+	function UpdateLogEntry(log) {
+	  return (0, _tags.div)((0, _tagged.css)(_templateObject22), (0, _tagged.key)(_templateObject21, log.key), (0, _tags.span)('tick: ', log.tick, (0, _tagged.css)(_templateObject23)), log.args.map(function (arg, i) {
+	    return (0, _tags.span)((0, _tagged.css)(_templateObject24), (0, _tags.span)((0, _tagged.css)(_templateObject25), function () {
+	      if (i > 0 && i != log.args.length - 1) {
+	        return '.';
+	      } else if (i == log.args.length - 1) {
+	        return '=>';
+	      }
+	      return '';
+	    }), formatArg(arg));
+	  }), _tags.clear);
+	}
+	
+	function formatArg(arg) {
+	  if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__is_op) {
+	    return [(0, _tags.span)(arg.op, (0, _tagged.css)(_templateObject26)), arg.args ? [': ', function () {
+	      var ret = [];
+	      for (var i = 0; i < arg.args.length; i++) {
+	        if (i > 0) {
+	          ret.push(', ');
+	        }
+	        ret.push(formatArg(arg.args[i]));
+	      }
+	      return ret;
+	    }] : []];
+	  } else if (Array.isArray(arg)) {
+	    var ret = ['[ '];
+	    for (var i = 0; i < arg.length; i++) {
+	      if (i > 0) {
+	        ret.push(', ');
+	      }
+	      ret.push(formatArg(arg[i]));
+	    }
+	    ret.push(' ]');
+	    return ret;
+	  } else if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object') {
+	    var _ret3 = ['{ '];
+	    var _i = 0;
+	    for (var _key2 in arg) {
+	      if (_i > 0) {
+	        _ret3.push(', ');
+	      }
+	      _ret3.push([_key2, ': ', formatArg(arg[_key2])]);
+	      _i++;
+	    }
+	    _ret3.push(' }');
+	    return _ret3;
+	  } else if (typeof arg === 'function') {
+	    return arg.toString();
+	  }
+	
+	  return arg;
+	}
+	
+	// close panel
+	function CloseButton(debugState) {
+	  return (0, _tags.button)((0, _tagged.$)(_templateObject27), (0, _tagged.css)(_templateObject28), (0, _event.on)('click', function () {
+	    debugState.$update('show', false);
+	  }), 'Close');
+	}
+	
+	function PanelPosition(debugState) {
+	  function makeButton(text, left, right, top, bottom) {
+	    return (0, _tags.button)((0, _tagged.$)(_templateObject29, text), (0, _tagged.css)(_templateObject30), text, (0, _event.on)('click', function () {
+	      debugState.$update((0, _operations.$merge)({
+	        left: left,
+	        right: right,
+	        top: top,
+	        bottom: bottom
+	      }));
+	    }));
+	  }
+	
+	  var width = debugState.panelWidthPercent || 45;
+	  var height = debugState.panelHeightPercent || 45;
+	
+	  return (0, _tags.div)((0, _tagged.css)(_templateObject28), (0, _tags.div)(makeButton('TL', 0, 100 - width + '%', 0, 100 - height + '%'), makeButton('TP', 0, 0, 0, 100 - height + '%'), makeButton('TR', 100 - width + '%', 0, 0, 100 - height + '%')), (0, _tags.div)(makeButton('LE', 0, 100 - width + '%', 0, 0), makeButton('MI', 0, 0, 0, 0), makeButton('RI', 100 - width + '%', 0, 0, 0)), (0, _tags.div)(makeButton('BL', 0, 100 - width + '%', 100 - height + '%', 0), makeButton('BO', 0, 0, 100 - height + '%', 0), makeButton('BR', 100 - width + '%', 0, 100 - height + '%', 0)));
+	}
+
+/***/ },
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2270,9 +2655,7 @@
 	  return true;
 	}
 	
-	// export
-	
-	module.exports = _extends({
+	var allOperations = _extends({
 	  $func: $func,
 	  $delete: $delete,
 	  $del: $del,
@@ -2282,9 +2665,21 @@
 	  $merge: $merge,
 	  $any: $any
 	});
+	
+	var op = {};
+	
+	for (var key in allOperations) {
+	  op[key.slice(1)] = allOperations[key];
+	}
+	
+	// export
+	
+	module.exports = _extends({}, allOperations, {
+	  op: op
+	});
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2329,8 +2724,7 @@
 	
 	var clear = (0, _nodes.e)('div', (0, _tagged.css)(_templateObject));
 	
-	module.exports = _extends({}, helpers, {
-	
+	helpers = _extends({}, helpers, {
 	  none: none,
 	  None: none,
 	  NONE: none,
@@ -2343,451 +2737,10 @@
 	  Checkbox: checkbox,
 	  CHECKBOX: checkbox
 	});
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
 	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	module.exports = _extends({}, helpers, {
+	  h: helpers
 	});
-	exports.bindHover = undefined;
-	exports.bindFocus = bindFocus;
-	exports.bindEnter = bindEnter;
-	exports.bindOver = bindOver;
-	
-	var _event = __webpack_require__(4);
-	
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-	
-	function bindFocus(state, name) {
-	  var _ref;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref = {}, _defineProperty(_ref, 'onfocus$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref, 'onblur$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref;
-	}
-	
-	function bindEnter(state, name) {
-	  var _ref2;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref2 = {}, _defineProperty(_ref2, 'onmouseenter$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref2, 'onmouseleave$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref2;
-	}
-	
-	function bindOver(state, name) {
-	  var _ref3;
-	
-	  var path = state.$path.slice(0);
-	  path.push(name);
-	  path = path.join(':');
-	  return _ref3 = {}, _defineProperty(_ref3, 'onmouseover$' + path, function () {
-	    state.$update(name, true);
-	  }), _defineProperty(_ref3, 'onmouseout$' + path, function () {
-	    state.$update(name, false);
-	  }), _ref3;
-	}
-	
-	var bindHover = exports.bindHover = bindOver;
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.consoleLogUpdates = undefined;
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	var _operations = __webpack_require__(9);
-	
-	var _event = __webpack_require__(4);
-	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-	
-	var consoleLogUpdates = exports.consoleLogUpdates = (0, _event.on)('afterUpdate:__log_updates', function (state) {
-	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
-	
-	  console.log('%cUPDATE', 'background: #555; color: white', args.slice(0, -1).map(function (arg) {
-	    return formatUpdatePath(arg);
-	  }).join(' . ') + ' => ', formatUpdateArg(args[args.length - 1]));
-	});
-	
-	function formatUpdatePath(arg) {
-	  if (arg === _operations.$any) {
-	    return '$any';
-	  }
-	  return arg;
-	}
-	
-	function formatUpdateArg(arg) {
-	  if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__is_op) {
-	    return [arg.op].concat(_toConsumableArray(arg.args || []));
-	  }
-	  return arg;
-	}
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	var _templateObject = _taggedTemplateLiteral(['\n      list-style: none;\n    '], ['\n      list-style: none;\n    ']),
-	    _templateObject2 = _taggedTemplateLiteral(['.tab-item-', ''], ['.tab-item-', '']),
-	    _templateObject3 = _taggedTemplateLiteral(['\n          background-color: ', ';\n          padding: 5px;\n          user-select: none;\n          cursor: pointer;\n        '], ['\n          background-color: ', ';\n          padding: 5px;\n          user-select: none;\n          cursor: pointer;\n        ']),
-	    _templateObject4 = _taggedTemplateLiteral(['\n      background-color: ', ';\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      min-width: ', ';\n      margin: 0;\n      text-align: center;\n      left: 0;\n    '], ['\n      background-color: ', ';\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      min-width: ', ';\n      margin: 0;\n      text-align: center;\n      left: 0;\n    ']),
-	    _templateObject5 = _taggedTemplateLiteral([' font-weight: bold '], [' font-weight: bold ']),
-	    _templateObject6 = _taggedTemplateLiteral(['\n        position: absolute;\n        left: 0;\n        right: 0;\n        bottom: 0;\n      '], ['\n        position: absolute;\n        left: 0;\n        right: 0;\n        bottom: 0;\n      ']),
-	    _templateObject7 = _taggedTemplateLiteral(['\n      background-color: ', ';\n      position: absolute;\n      left: ', ';\n      right: 0;\n      bottom: 0;\n      height: ', ';\n      font-size: 1em;\n      line-height: 1em;\n    '], ['\n      background-color: ', ';\n      position: absolute;\n      left: ', ';\n      right: 0;\n      bottom: 0;\n      height: ', ';\n      font-size: 1em;\n      line-height: 1em;\n    ']),
-	    _templateObject8 = _taggedTemplateLiteral(['#main'], ['#main']),
-	    _templateObject9 = _taggedTemplateLiteral(['\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      left: ', ';\n      right: 0;\n      top: 0;\n      bottom: ', ';\n      border-left: 1px solid #CCC;\n      border-bottom: 1px solid #CCC;\n      overflow: auto;\n    '], ['\n      position: absolute;\n      top: 0;\n      bottom: 0;\n      left: ', ';\n      right: 0;\n      top: 0;\n      bottom: ', ';\n      border-left: 1px solid #CCC;\n      border-bottom: 1px solid #CCC;\n      overflow: auto;\n    ']),
-	    _templateObject10 = _taggedTemplateLiteral([' \n      text-align: center; \n      border-bottom: 1px solid #CCC;\n      font-weight: bold;\n      margin-bottom: 3px;\n    '], [' \n      text-align: center; \n      border-bottom: 1px solid #CCC;\n      font-weight: bold;\n      margin-bottom: 3px;\n    ']),
-	    _templateObject11 = _taggedTemplateLiteral(['\n      height: 10vh;\n    '], ['\n      height: 10vh;\n    ']),
-	    _templateObject12 = _taggedTemplateLiteral(['\n        position: fixed;\n        top: ', ';\n        left: ', ';\n        right: ', ';\n        bottom: ', ';\n        border: 1px solid #666;\n        background-color: white;\n        margin: 1px;\n        font-size: 12px;\n        z-index: 9999;\n        color: #333;\n      '], ['\n        position: fixed;\n        top: ', ';\n        left: ', ';\n        right: ', ';\n        bottom: ', ';\n        border: 1px solid #666;\n        background-color: white;\n        margin: 1px;\n        font-size: 12px;\n        z-index: 9999;\n        color: #333;\n      ']),
-	    _templateObject13 = _taggedTemplateLiteral(['\n      padding: 0 10px;\n    '], ['\n      padding: 0 10px;\n    ']),
-	    _templateObject14 = _taggedTemplateLiteral(['\n      margin: 0 auto;\n      min-width: 100%;\n      border-collapse: collapse;\n      text-align: center;\n    '], ['\n      margin: 0 auto;\n      min-width: 100%;\n      border-collapse: collapse;\n      text-align: center;\n    ']),
-	    _templateObject15 = _taggedTemplateLiteral(['\n            border: 1px solid #AAA;\n          '], ['\n            border: 1px solid #AAA;\n          ']),
-	    _templateObject16 = _taggedTemplateLiteral(['\n            background-color: #EEFFEE;\n            padding: 0 10px;\n            vertical-align: top;\n          '], ['\n            background-color: #EEFFEE;\n            padding: 0 10px;\n            vertical-align: top;\n          ']),
-	    _templateObject17 = _taggedTemplateLiteral(['.state-value'], ['.state-value']),
-	    _templateObject18 = _taggedTemplateLiteral(['\n            padding: 1px;\n          '], ['\n            padding: 1px;\n          ']),
-	    _templateObject19 = _taggedTemplateLiteral(['\n      padding-left: 5px;\n    '], ['\n      padding-left: 5px;\n    ']),
-	    _templateObject20 = _taggedTemplateLiteral(['#clear-updates'], ['#clear-updates']),
-	    _templateObject21 = _taggedTemplateLiteral(['', ''], ['', '']),
-	    _templateObject22 = _taggedTemplateLiteral(['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    '], ['\n      border-bottom: 1px solid #EEE;\n      margin-bottom: 1px;\n    ']),
-	    _templateObject23 = _taggedTemplateLiteral(['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      '], ['\n        padding: 0 10px;\n        background-color: #EFE;\n        float: right;\n      ']),
-	    _templateObject24 = _taggedTemplateLiteral(['\n          padding: 0 10px;\n          color: #AAA;\n        '], ['\n          padding: 0 10px;\n          color: #AAA;\n        ']),
-	    _templateObject25 = _taggedTemplateLiteral(['\n        text-decoration: underline;\n      '], ['\n        text-decoration: underline;\n      ']),
-	    _templateObject26 = _taggedTemplateLiteral(['#close-debug-panel'], ['#close-debug-panel']),
-	    _templateObject27 = _taggedTemplateLiteral(['\n      margin: 10px 0;\n    '], ['\n      margin: 10px 0;\n    ']),
-	    _templateObject28 = _taggedTemplateLiteral(['#panel-position-', ''], ['#panel-position-', '']),
-	    _templateObject29 = _taggedTemplateLiteral(['\n        font-size: 10px;\n        width: 3em;\n      '], ['\n        font-size: 10px;\n        width: 3em;\n      ']);
-	
-	exports.DebugPanel = DebugPanel;
-	
-	var _app = __webpack_require__(2);
-	
-	var _nodes = __webpack_require__(7);
-	
-	var _tagged = __webpack_require__(8);
-	
-	var _event = __webpack_require__(4);
-	
-	var _operations = __webpack_require__(9);
-	
-	var _tags = __webpack_require__(10);
-	
-	var _state = __webpack_require__(6);
-	
-	function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-	
-	var logSerial = 0;
-	
-	function DebugPanel(app, initState) {
-	
-	  // check state
-	  var debugState = app.state.__debug_panel;
-	  if (!debugState) {
-	    app.update('__debug_panel', {});
-	    debugState = app.state.__debug_panel;
-	  }
-	
-	  // init
-	  if (!debugState.initialized) {
-	    (function () {
-	      // hotkey
-	      document.addEventListener('keypress', function (ev) {
-	        if (ev.keyCode != 17 || !ev.ctrlKey) {
-	          return;
-	        }
-	        debugState.$update('show', (0, _operations.$func)(function (v) {
-	          return !v;
-	        }));
-	      });
-	
-	      // updates logging
-	      var logState = debugState.updates;
-	      if (!logState) {
-	        debugState.$update('updates', []);
-	        logState = debugState.updates;
-	      }
-	      app.init((0, _event.on)('afterUpdate: aff logging log updates', function (state) {
-	        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	          args[_key - 1] = arguments[_key];
-	        }
-	
-	        // to prevent recursive logging
-	        var ignore = logState.$path.reduce(function (acc, cur, i) {
-	          return acc && cur == args[i];
-	        }, true);
-	        if (!ignore) {
-	          logState.$update((0, _operations.$push)({
-	            args: (0, _state.readOnly)(args),
-	            tick: state.__aff_tick,
-	            key: logSerial
-	          }));
-	          logSerial++;
-	        }
-	      }));
-	
-	      // init state
-	      if (initState) {
-	        debugState.$update((0, _operations.$merge)(initState));
-	      }
-	      debugState.$update('initialized', true);
-	    })();
-	  }
-	
-	  if (!debugState.show) {
-	    return [];
-	  }
-	
-	  // styles
-	  var panelBackgroundColor = '#EEE';
-	  var leftPanelWidth = '10vw';
-	  var bottomPanelHeight = '1em';
-	
-	  // tabs
-	  if (debugState.selectedTab === undefined) {
-	    debugState.$update('selectedTab', 'state');
-	  }
-	  var Tabs = (0, _nodes.t)(function (debugState) {
-	    return (0, _tags.div)((0, _tagged.css)(_templateObject), [{ name: 'index' }, { name: 'state' }, { name: 'updates' }].map(function (info) {
-	      return (0, _tags.div)((0, _tagged.$)(_templateObject2, info.name), info.name, (0, _tagged.css)(_templateObject3, debugState.selectedTab === info.name ? '#DDD' : 'transparent'), (0, _event.on)('click', function () {
-	        debugState.$update('selectedTab', info.name);
-	      }));
-	    }));
-	  }, debugState);
-	
-	  var LeftPanel = (0, _tags.div)((0, _tagged.css)(_templateObject4, panelBackgroundColor, leftPanelWidth), (0, _tags.p)((0, _tagged.css)(_templateObject5), 'Debug Panel'), Tabs,
-	
-	  // lower left
-	  (0, _tags.div)((0, _tagged.css)(_templateObject6), PanelPosition(debugState), CloseButton(debugState)));
-	
-	  var BottomPanel = (0, _tags.div)((0, _tagged.css)(_templateObject7, panelBackgroundColor, leftPanelWidth, bottomPanelHeight), (0, _nodes.t)(PointingPath, debugState.pointingPath));
-	
-	  var MainContent = (0, _nodes.t)(function (debugState, appState) {
-	    return (0, _tags.div)((0, _tagged.$)(_templateObject8), (0, _tagged.css)(_templateObject9, leftPanelWidth, bottomPanelHeight), (0, _tags.div)(debugState.selectedTab, (0, _tagged.css)(_templateObject10)), function () {
-	      // scroll to top when switching tab
-	      var lastTab = debugState.lastTab;
-	      if (debugState.selectedTab != lastTab) {
-	        var elem = document.querySelector('#main') || window;
-	        elem.scrollTop = 0;
-	        debugState.$update('lastTab', debugState.selectedTab);
-	      }
-	
-	      if (debugState.selectedTab === 'state') {
-	        return (0, _nodes.t)(AppState, appState, debugState);
-	      } else if (debugState.selectedTab === 'updates') {
-	        return (0, _nodes.t)(Updates, debugState.updates, debugState.$path);
-	      }
-	
-	      return _tags.none;
-	    }, (0, _tags.div)((0, _tagged.css)(_templateObject11)));
-	  }, debugState, app.state);
-	
-	  return [
-	
-	  // ui
-	  (0, _tags.div)((0, _tagged.css)(_templateObject12, debugState.top || 0, debugState.left || 0, debugState.right || 0, debugState.bottom || 0), LeftPanel, BottomPanel, MainContent)];
-	}
-	
-	function AppState(appState, debugState) {
-	  return (0, _tags.div)((0, _tagged.css)(_templateObject13), (0, _nodes.t)(StateNode, appState, [], debugState));
-	}
-	
-	function StateNode(appState) {
-	  var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-	  var debugState = arguments[2];
-	
-	  return (0, _nodes.t)(function (appState, path) {
-	    return (0, _tags.table)((0, _tagged.css)(_templateObject14), function () {
-	      var ret = [];
-	      var keys = Object.keys(appState);
-	      keys.sort(function (a, b) {
-	        return a > b;
-	      });
-	
-	      var _loop = function _loop(i) {
-	        var key = keys[i];
-	        if (appState[key] === debugState) {
-	          // skip debug state
-	          return 'continue';
-	        }
-	        var valueNode = void 0;
-	        if (_typeof(appState[key]) === 'object') {
-	          var subpath = path.slice(0);
-	          subpath.push(key);
-	          valueNode = (0, _nodes.t)(StateNode, appState[key], subpath, debugState);
-	        } else {
-	          valueNode = appState[key].toString();
-	        }
-	
-	        var bindPointingPath = [(0, _event.on)('mouseenter', function () {
-	          var pointingPath = path.slice(0);
-	          pointingPath.push(key);
-	          debugState.$update('pointingPath', pointingPath);
-	        }), (0, _event.on)('mouseleave', function () {
-	          debugState.$update('pointingPath', false);
-	        })];
-	
-	        ret.push((0, _tags.tr)((0, _tagged.css)(_templateObject15), bindPointingPath,
-	        // key
-	        (0, _tags.td)(key, (0, _tagged.css)(_templateObject16), bindPointingPath),
-	        // value
-	        (0, _tags.td)((0, _tagged.$)(_templateObject17), valueNode, (0, _tagged.css)(_templateObject18), bindPointingPath)));
-	      };
-	
-	      for (var i = 0; i < keys.length; i++) {
-	        var _ret2 = _loop(i);
-	
-	        if (_ret2 === 'continue') continue;
-	      }
-	      return ret;
-	    });
-	  }, appState, path);
-	}
-	
-	function PointingPath(path) {
-	  if (!path) {
-	    return _tags.none;
-	  }
-	  return (0, _tags.div)('POINTING PATH: ', path.map(function (key) {
-	    return (0, _tags.span)(key, (0, _tagged.css)(_templateObject19));
-	  }));
-	}
-	
-	function Updates(updates, debugStatePath) {
-	  return (0, _tags.div)((0, _tagged.css)(_templateObject13), (0, _tags.button)((0, _tagged.$)(_templateObject20), 'Clear', (0, _event.on)('click', function () {
-	    updates.$update([]);
-	  })), function () {
-	    var ret = [];
-	
-	    var _loop2 = function _loop2(i) {
-	      var log = updates[i];
-	      var ignore = debugStatePath.reduce(function (acc, cur, i) {
-	        return acc && cur == log.args[i];
-	      }, true);
-	      // ignore debug panel updates
-	      if (ignore) {
-	        return 'continue';
-	      }
-	
-	      ret.push((0, _nodes.t)(UpdateLogEntry, (0, _tagged.key)(_templateObject21, log.key), log));
-	    };
-	
-	    for (var i = updates.length - 1; i >= 0; i--) {
-	      var _ret3 = _loop2(i);
-	
-	      if (_ret3 === 'continue') continue;
-	    }
-	    return ret;
-	  });
-	}
-	
-	function UpdateLogEntry(log) {
-	  return (0, _tags.div)((0, _tagged.css)(_templateObject22), (0, _tagged.key)(_templateObject21, log.key), (0, _tags.span)('tick: ', log.tick, (0, _tagged.css)(_templateObject23)), log.args.map(function (arg, i) {
-	    return (0, _tags.span)((0, _tags.span)((0, _tagged.css)(_templateObject24), function () {
-	      if (i > 0 && i != log.args.length - 1) {
-	        return '.';
-	      } else if (i == log.args.length - 1) {
-	        return '=>';
-	      }
-	      return '';
-	    }), formatArg(arg));
-	  }), _tags.clear);
-	}
-	
-	function formatArg(arg) {
-	  if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg.__is_op) {
-	    return [(0, _tags.span)(arg.op, (0, _tagged.css)(_templateObject25)), arg.args ? [': ', function () {
-	      var ret = [];
-	      for (var i = 0; i < arg.args.length; i++) {
-	        if (i > 0) {
-	          ret.push(', ');
-	        }
-	        ret.push(formatArg(arg.args[i]));
-	      }
-	      return ret;
-	    }] : []];
-	  } else if (Array.isArray(arg)) {
-	    var ret = ['[ '];
-	    for (var i = 0; i < arg.length; i++) {
-	      if (i > 0) {
-	        ret.push(', ');
-	      }
-	      ret.push(formatArg(arg[i]));
-	    }
-	    ret.push(' ]');
-	    return ret;
-	  } else if ((typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object') {
-	    var _ret4 = ['{ '];
-	    var _i = 0;
-	    for (var _key2 in arg) {
-	      if (_i > 0) {
-	        _ret4.push(', ');
-	      }
-	      _ret4.push([_key2, ': ', formatArg(arg[_key2])]);
-	      _i++;
-	    }
-	    _ret4.push(' }');
-	    return _ret4;
-	  } else if (typeof arg === 'function') {
-	    return arg.toString();
-	  }
-	
-	  return arg;
-	}
-	
-	// close panel
-	function CloseButton(debugState) {
-	  return (0, _tags.button)((0, _tagged.$)(_templateObject26), (0, _tagged.css)(_templateObject27), (0, _event.on)('click', function () {
-	    debugState.$update('show', false);
-	  }), 'Close');
-	}
-	
-	function PanelPosition(debugState) {
-	  function makeButton(text, left, right, top, bottom) {
-	    return (0, _tags.button)((0, _tagged.$)(_templateObject28, text), (0, _tagged.css)(_templateObject29), text, (0, _event.on)('click', function () {
-	      debugState.$update((0, _operations.$merge)({
-	        left: left,
-	        right: right,
-	        top: top,
-	        bottom: bottom
-	      }));
-	    }));
-	  }
-	
-	  var width = debugState.panelWidthPercent || 45;
-	  var height = debugState.panelHeightPercent || 45;
-	
-	  return (0, _tags.div)((0, _tagged.css)(_templateObject27), (0, _tags.div)(makeButton('TL', 0, 100 - width + '%', 0, 100 - height + '%'), makeButton('TP', 0, 0, 0, 100 - height + '%'), makeButton('TR', 100 - width + '%', 0, 0, 100 - height + '%')), (0, _tags.div)(makeButton('LE', 0, 100 - width + '%', 0, 0), makeButton('MI', 0, 0, 0, 0), makeButton('RI', 100 - width + '%', 0, 0, 0)), (0, _tags.div)(makeButton('BL', 0, 100 - width + '%', 100 - height + '%', 0), makeButton('BO', 0, 0, 100 - height + '%', 0), makeButton('BR', 100 - width + '%', 0, 100 - height + '%', 0)));
-	}
 
 /***/ }
 /******/ ]);

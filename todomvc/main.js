@@ -1,32 +1,33 @@
 import {
-  App, t, on, css, $, updater,
+  App, t, on, css, $, weakRef, ref,
   section, header, footer, h1, p, a, div, span,
   input, ul, li, none, button, strong, label, checkbox,
   $any, $push, $splice, $filter, $merge,
   DebugPanel,
 } from '../../index'
 
-const saved = JSON.parse(window.localStorage.getItem('todomvc'));
+const saved = JSON.parse(window.localStorage.getItem('todomvc')) || {};
 
 const init_state = {
   todos: saved.todos || [],
   filter: saved.filter || 'All',
 
   Header: {
-    updateTodos: updater('todos'),
+    todos: weakRef('todos'),
   },
 
   TodoList: {
-    $ref: ['todos', 'filter'],
+    todos: ref('todos'),
+    filter: ref('filter'),
 
     Todo: {
-      updateTodos: updater('todos'),
+      todos: weakRef('todos'),
     },
   },
 
   Footer: {
-    $ref: ['todos', 'filter'],
-    updateTodos: updater('todos'),
+    todos: ref('todos'),
+    filter: ref('filter'),
   },
 };
 
@@ -52,7 +53,7 @@ const Header = (state) => header($`.header`,
       if (e.keyCode != 13 || this.element.value.length == 0) {
         return
       }
-      state.updateTodos($push({
+      state.todos.$update($push({
         completed: false,
         content: this.element.value,
       }));
@@ -74,14 +75,14 @@ const Todo = (state, todo, i) => li(
         checked: todo.completed,
       },
       on('click', function() {
-        state.updateTodos(i, 'completed', this.element.checked);
+        state.todos.$update(i, 'completed', this.element.checked);
       }),
     ),
     label(todo.content, on('dblclick', () => {
-      state.updateTodos(i, 'editing', true);
+      state.todos.$update(i, 'editing', true);
     })),
     button($`.destroy`, on('click', () => {
-      state.updateTodos($splice(i, 1));
+      state.todos.$update($splice(i, 1));
     })),
   ),
   input($`.edit`, 
@@ -90,7 +91,7 @@ const Todo = (state, todo, i) => li(
     },
     on('keypress', function(e) {
       if (e.keyCode == 13) {
-        state.updateTodos(i, $merge({
+        state.todos.$update(i, $merge({
           content: this.element.value,
           editing: false,
         }));
@@ -132,7 +133,7 @@ const Footer = (state) => footer($`.footer`,
   state.todos.reduce((b, c) => b || c.completed, false) ? button({
     classList: 'clear-completed',
     onclick() {
-      state.updateTodos($filter(todo => !todo.completed));
+      state.todos.$update($filter(todo => !todo.completed));
     },
   }, 'Clear completed') : none,
 );
