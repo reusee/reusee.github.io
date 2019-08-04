@@ -1,5 +1,6 @@
 body {
   font-size: 16px;
+  line-height: 20px;
   padding: 0;
   margin: 0;
   background-color: #D1D9E0;
@@ -12,15 +13,14 @@ a {
 }
 
 p {
-  line-height: 20px;
   padding: 0;
   margin: 0.7em 0;
-  padding-left: 20px;
+  padding-left: 40px;
   padding-right: 2em;
 }
 
 h3 {
-  padding-left: 20px;
+  padding-left: 40px;
 }
 
 #article {
@@ -39,41 +39,46 @@ h3 {
   line-height: 16px;
 }
 
+.summary .title {
+  line-height: 30px;
+}
+
 code {
   padding: 0;
   border-left: 1px solid black;
 }
 
 #panel {
-  width: 5em;
-  text-align: right;
+  width: 80px;
+  text-align: center;
   background-color: #3F3F3F;
-  padding-right: 2em;
+  padding: 20px 20px 0 20px;
   height: 100vh;
   position: fixed;
   color: white;
   font-weight: bold;
+  line-height: 30px;
 }
 
 #panel a {
   color: white;
-  line-height: 30px;
 }
 
 #panel ul {
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
 #right {
-  margin-left: 7em;
+  margin-left: 120px;
 }
 
 #index-summaries {
-  padding-left: 20%;
-  padding-top: 1em;
+  padding: 40px 0 0 20%;
 }
 
 .hljs {
-  padding: 20px !important;
+  padding: 20px 20px 20px 40px !important;
 }
 
