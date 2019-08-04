@@ -84,3 +84,7 @@ code {
   overflow-x: scroll;
 }
 
+#comments {
+  padding: 0 0 40px 40px;
+}
+
