@@ -1,6 +1,6 @@
 body {
   font-size: 16px;
-  line-height: 20px;
+  line-height: 1.5em;
   padding: 0;
   margin: 0;
   background-color: #D1D9E0;
@@ -31,16 +31,16 @@ h3 {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 60px;
+  line-height: 4.5;
 }
 
 .summary .date {
   font-size: 10px;
-  line-height: 16px;
+  line-height: 1em;
 }
 
 .summary .title {
-  line-height: 30px;
+  line-height: 2em;
 }
 
 code {
@@ -57,7 +57,7 @@ code {
   position: fixed;
   color: white;
   font-weight: bold;
-  line-height: 30px;
+  line-height: 2em;
 }
 
 #panel a {
@@ -72,6 +72,7 @@ code {
 
 #right {
   margin-left: 120px;
+  max-width: 800px;
 }
 
 #index-summaries {
@@ -80,5 +81,6 @@ code {
 
 .hljs {
   padding: 20px 20px 20px 40px !important;
+  overflow-x: scroll;
 }
 

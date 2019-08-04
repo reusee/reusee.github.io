@@ -6,10 +6,25 @@
     <description>Recent content in Posts on 声zzz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 04 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 04 Aug 2019 12:00:00 +0800</lastBuildDate>
     
 	<atom:link href="http://reusee.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>再议错误处理</title>
+      <link>http://reusee.github.io/post/error-handling-2/</link>
+      <pubDate>Sun, 04 Aug 2019 12:00:00 +0800</pubDate>
+      
+      <guid>http://reusee.github.io/post/error-handling-2/</guid>
+      <description>几年前写过一篇文章，讨论了一种处理错误的方式。 近几年，在不需要压榨性能，或者不需要做覆盖测试的场景里，我都会用这种更简短的方式。
+所以，对于 try 提案，我是支持的，因为用 try 可以替代 panic / recover 实现隐式的 return，在性能方面有优势。 try 提案寿终正寝了，我是觉得可惜的。很多反对 try 提案的人，都不是出于技术性的原因，很多都是非理性的。 当然，技术性的缺陷也是有的，但我认为还没有严重到，连试验都不做就要放弃的地步。
+说回前一篇文章所讨论的方式，最近其实也有改进，单独做了一个包：https://github.com/reusee/e
+和以前的实现比较，有下述几个不同点：
+首先，panic 抛出的，是经过包装的 thrownError 对象，而不是原先的 error 对象。 这样做的好处是，可以准确判断 recover 返回的，是不是由错误处理的 panic 抛出的对象。 以前的做法就比较粗放，很可能会将一些需要 panic 的对象，转化成了 error 返回值。
+第二个不同是，error 类型可以有不同的实现。 check 和 catch 函数不再是全局函数，而是由一个构造函数返回，而这个构造函数的参数，是一个包装错误的函数。 构造函数的签名为
+func New( makeErr MakeErr, ) ( check func(err error, args ...interface{}), catch func(errp *error, args ...interface{}), ) { type MakeErr = func(error, ...interface{}) error  这种设计，比起之前使用固定的 Error 类型，要更灵活。 因为不同的项目，使用的 Error 可能不同，应该允许项目自己实现 makeErr。</description>
+    </item>
     
     <item>
       <title>给 interface{} 起别名</title>
