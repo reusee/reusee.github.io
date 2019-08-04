@@ -15,12 +15,12 @@ p {
   line-height: 20px;
   padding: 0;
   margin: 0.7em 0;
-  padding-left: 5px;
+  padding-left: 20px;
   padding-right: 2em;
 }
 
 h3 {
-  padding-left: 5px;
+  padding-left: 20px;
 }
 
 #article {
@@ -31,7 +31,7 @@ h3 {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
-  line-height: 40px;
+  line-height: 60px;
 }
 
 .summary .date {
@@ -41,6 +41,7 @@ h3 {
 
 code {
   padding: 0;
+  border-left: 1px solid black;
 }
 
 #panel {
@@ -51,10 +52,12 @@ code {
   height: 100vh;
   position: fixed;
   color: white;
+  font-weight: bold;
 }
 
 #panel a {
   color: white;
+  line-height: 30px;
 }
 
 #panel ul {
@@ -70,6 +73,7 @@ code {
   padding-top: 1em;
 }
 
-code {
-  border-left: 1px solid #666;
+.hljs {
+  padding: 20px !important;
 }
+

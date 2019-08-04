@@ -11,8 +11,7 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="http://www.douban.com/people/reus/" target="_blank">豆瓣</a></li>
-        <li><a href="http://www.zhihu.com/people/reus" target="_blank">知乎</a></li>
+        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -28,7 +27,7 @@
 <p>这是开发<a href="https://github.com/reusee/gotunnel-ng" target="_blank">gotunnel-ng</a>时使用过的一种结构。
 觉得比较通用，例如可以用在多线程gui库里，所以重新实现了下。简单介绍之。</p>
 
-<h3 id="0-基本结构:64f69964068e81337a920d35b6c5158f">0) 基本结构</h3>
+<h3 id="0-基本结构">0) 基本结构</h3>
 
 <p>基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下</p>
 
@@ -49,7 +48,7 @@ type Call struct {
 }
 </code></pre>
 
-<h3 id="1-线程安全的状态读写:64f69964068e81337a920d35b6c5158f">1) 线程安全的状态读写</h3>
+<h3 id="1-线程安全的状态读写">1) 线程安全的状态读写</h3>
 
 <p>Object的Call方法接受一个func()类型的参数，这个closure会被包装成Call结构，并送入Object的calls管道内。<br />
 Object的主循环会读到这个Call，并在循环内执行此closure。<br />
@@ -81,7 +80,7 @@ wg.Wait()
 
 <p>同样的效果，用锁也能实现，但Lock操作是阻塞的，实现不了下述的机制。</p>
 
-<h3 id="2-异步调用和future:64f69964068e81337a920d35b6c5158f">2) 异步调用和future</h3>
+<h3 id="2-异步调用和future">2) 异步调用和future</h3>
 
 <p>Object的Call方法是异步的，也就是传入的closure不会立即执行，Call方法在将Call结构送入calls成员后返回。<br />
 Call方法返回送出的Call结构，Call结构有一个Wait方法。
@@ -98,7 +97,7 @@ fmt.Printf("%d\n", call.Get().(int))
 
 <p>返回值使用interface{}类型，是为了避免使用reflect。性能差异太大，所以作此取舍。</p>
 
-<h3 id="3-signal-slot机制:64f69964068e81337a920d35b6c5158f">3) Signal/Slot机制</h3>
+<h3 id="3-signal-slot机制">3) Signal/Slot机制</h3>
 
 <p>Object用Connect和Emit方法实现Signal/Slot机制。这是和GObject、Qt之类类似的。<br />
 Emit可以带一个任意类型的参数。之前的实现使用了reflect，支持任意个，但reflect对性能影响不小，于是作此限定。<br />
@@ -123,7 +122,7 @@ fmt.Printf("%d\n", obj.i)
 
 <p>输出为20</p>
 
-<h3 id="4-执行驱动:64f69964068e81337a920d35b6c5158f">4) 执行驱动</h3>
+<h3 id="4-执行驱动">4) 执行驱动</h3>
 
 <p>Object的各种方法调用，都是靠goroutine来驱动。
 一个goroutine对应一个Object，这是默认的驱动的做法。
@@ -137,7 +136,7 @@ n:1和n:m驱动就是用于降低goroutine带来的开销的。但因为goroutin
 
 <p>64bit机器上，1G内存，1:1驱动可以跑12万个Object，n:m驱动在n为2048时能跑200万左右，n:1驱动在n为128时能跑320万左右。对象多时，goroutine的内存占比不高，n的影响不大。</p>
 
-<h3 id="5-调用性能:64f69964068e81337a920d35b6c5158f">5) 调用性能</h3>
+<h3 id="5-调用性能">5) 调用性能</h3>
 
 <p>一次Call调用，需要创建Call结构，进出calls管道，执行closure，改变完成状态和广播，开销不小。
 在我机器上空closure的Benchmark的结果是，Call并Wait是840 ns/op左右，Call不Wait是560 ns/op左右。
