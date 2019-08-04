@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title> - 声zzz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> &ndash; 声zzz</title>
     <link href="/css/style.css" rel="stylesheet">
     <link href="/css/zenburn.css" rel="stylesheet">
   </head>
@@ -18,14 +19,14 @@
     <div id="right">
 
 
+
 <div id="article">
   <div class="title">给 interface{} 起别名</div>
   <div class="content"><p>在 go 程序里，interface{} 是常用的类型。即使会加入泛型，它仍然有需要用到的地方，例如需要运行期反射的场景。</p>
 
 <p>最近在新项目里我都会用到下面的别名定义</p>
 
-<pre><code class="language-go">
-type (
+<pre><code class="language-go">type (
   any = interface{}
   dyn = interface{}
 )
@@ -41,14 +42,11 @@ type (
 
 <p>类型别名在另外一些场景，也可以起到简化代码的作用，例如</p>
 
-<pre><code class="language-go">
-type M = map[string]any
-</code></pre>
+<pre><code class="language-go">type M = map[string]any</code></pre>
 
 <p>M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些</p>
 
-<pre><code class="language-go">
-var jsonData = M{
+<pre><code class="language-go">var jsonData = M{
   "foo": M{
     "bar": M{
       "baz": []M{

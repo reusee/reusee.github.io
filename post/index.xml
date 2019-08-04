@@ -38,7 +38,7 @@ type ( any = interface{} dyn = interface{} )  any 表示任意类型，用于需
 dyn 表示动态类型，用于需要做 reflect 的场景。 这些场景是泛型不能替代的，例如动态调用、赋值等。
 使用这些别名，一来比较简短，二来语义可以更清晰。
 类型别名在另外一些场景，也可以起到简化代码的作用，例如
-type M = map[string]any  M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些
+type M = map[string]any M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些
 var jsonData = M{ &#34;foo&#34;: M{ &#34;bar&#34;: M{ &#34;baz&#34;: []M{ { &#34;quux&#34;: 42, }, }, }, }, &#34;ok&#34;: true, }  如果不用别名，而是用 map[string]interface{}，就相当冗长了。
 虽然类型别名的初衷并不是简化代码，而是方便重构，但既然具备上面所述的几个优点，那就可以用。</description>
     </item>
