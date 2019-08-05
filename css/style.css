@@ -23,6 +23,15 @@ a {
   line-height: 4.5;
 }
 
+#article .date {
+  font-size: 12px;
+  text-align: right;
+}
+
+#article #comments {
+  margin-top: 20px;
+}
+
 .summary .date {
   font-size: 10px;
   line-height: 1em;
@@ -34,18 +43,14 @@ a {
 
 #panel {
   width: 80px;
-  text-align: center;
-  background-color: #3F3F3F;
+  min-width: 6em;
+  text-align: right;
   padding: 20px 20px 0 20px;
-  height: 100vh;
+  top: 50%;
+  transform: translate(0, -50%);
   position: fixed;
-  color: white;
   font-weight: bold;
   line-height: 2em;
-}
-
-#panel a {
-  color: white;
 }
 
 #panel ul {
@@ -63,3 +68,6 @@ a {
   padding: 40px 0 0 20%;
 }
 
+.highlight {
+  overflow-x: auto;
+}
