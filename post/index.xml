@@ -2,22 +2,22 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on 声zzz</title>
-    <link>http://reusee.github.io/post/</link>
+    <link>https://reusee.github.io/post/</link>
     <description>Recent content in Posts on 声zzz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Sun, 04 Aug 2019 12:00:00 +0800</lastBuildDate>
     
-        <atom:link href="http://reusee.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://reusee.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>再议错误处理</title>
-      <link>http://reusee.github.io/post/error-handling-2/</link>
+      <link>https://reusee.github.io/post/error-handling-2/</link>
       <pubDate>Sun, 04 Aug 2019 12:00:00 +0800</pubDate>
       
-      <guid>http://reusee.github.io/post/error-handling-2/</guid>
-      <description>&lt;p&gt;几年前写过&lt;a href=&#34;http://reusee.github.io/post/error-handling/&#34; target=&#34;_blank&#34;&gt;一篇文章&lt;/a&gt;，讨论了一种处理错误的方式。
+      <guid>https://reusee.github.io/post/error-handling-2/</guid>
+      <description>&lt;p&gt;几年前写过&lt;a href=&#34;https://reusee.github.io/post/error-handling/&#34; target=&#34;_blank&#34;&gt;一篇文章&lt;/a&gt;，讨论了一种处理错误的方式。
 近几年，在不需要压榨性能，或者不需要做覆盖测试的场景里，我都会用这种更简短的方式。&lt;/p&gt;
 
 &lt;p&gt;所以，对于 try 提案，我是支持的，因为用 try 可以替代 panic / recover 实现隐式的 return，在性能方面有优势。
@@ -93,10 +93,10 @@ wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
     
     <item>
       <title>给 interface{} 起别名</title>
-      <link>http://reusee.github.io/post/empty-interface-aliasing/</link>
+      <link>https://reusee.github.io/post/empty-interface-aliasing/</link>
       <pubDate>Sun, 04 Aug 2019 00:00:00 +0000</pubDate>
       
-      <guid>http://reusee.github.io/post/empty-interface-aliasing/</guid>
+      <guid>https://reusee.github.io/post/empty-interface-aliasing/</guid>
       <description>&lt;p&gt;在 go 程序里，interface{} 是常用的类型。即使会加入泛型，它仍然有需要用到的地方，例如需要运行期反射的场景。&lt;/p&gt;
 
 &lt;p&gt;最近在新项目里我都会用到下面的别名定义&lt;/p&gt;
@@ -143,10 +143,10 @@ wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
     
     <item>
       <title>golang变量逃逸分析小探</title>
-      <link>http://reusee.github.io/post/escape_analysis/</link>
+      <link>https://reusee.github.io/post/escape_analysis/</link>
       <pubDate>Sun, 25 Oct 2015 09:32:00 +0800</pubDate>
       
-      <guid>http://reusee.github.io/post/escape_analysis/</guid>
+      <guid>https://reusee.github.io/post/escape_analysis/</guid>
       <description>&lt;p&gt;看到这篇博文： &lt;a href=&#34;http://www.zenlife.tk/go-allocated-on-heap-or-stack.md&#34;&gt;http://www.zenlife.tk/go-allocated-on-heap-or-stack.md&lt;/a&gt; ，于是想深入探究一下。&lt;/p&gt;
 
 &lt;p&gt;既然fmt.Println会使a、b逃逸，println不会，那就先从fmt.Println入手。&lt;/p&gt;
@@ -322,10 +322,10 @@ func main() {
     
     <item>
       <title>go处理错误的另一种方式</title>
-      <link>http://reusee.github.io/post/error-handling/</link>
+      <link>https://reusee.github.io/post/error-handling/</link>
       <pubDate>Thu, 01 Oct 2015 15:05:34 +0800</pubDate>
       
-      <guid>http://reusee.github.io/post/error-handling/</guid>
+      <guid>https://reusee.github.io/post/error-handling/</guid>
       <description>&lt;p&gt;go处理错误常见的方式是&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;err := funcReturningError()
@@ -460,10 +460,10 @@ foobar: baz
     
     <item>
       <title>用嵌入字段实现代码重用</title>
-      <link>http://reusee.github.io/post/embedded/</link>
+      <link>https://reusee.github.io/post/embedded/</link>
       <pubDate>Thu, 28 Aug 2014 14:37:17 +0800</pubDate>
       
-      <guid>http://reusee.github.io/post/embedded/</guid>
+      <guid>https://reusee.github.io/post/embedded/</guid>
       <description>&lt;p&gt;对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;type Foo struct {
@@ -599,10 +599,10 @@ func main() {
     
     <item>
       <title>一种对象结构</title>
-      <link>http://reusee.github.io/post/object/</link>
+      <link>https://reusee.github.io/post/object/</link>
       <pubDate>Mon, 12 May 2014 14:37:09 +0800</pubDate>
       
-      <guid>http://reusee.github.io/post/object/</guid>
+      <guid>https://reusee.github.io/post/object/</guid>
       <description>
 
 &lt;p&gt;&lt;a href=&#34;https://github.com/reusee/object&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/reusee/object&#34;&gt;https://github.com/reusee/object&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;

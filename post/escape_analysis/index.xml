@@ -2,13 +2,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>golang变量逃逸分析小探 on 声zzz</title>
-    <link>http://reusee.github.io/post/escape_analysis/</link>
+    <link>https://reusee.github.io/post/escape_analysis/</link>
     <description>Recent content in golang变量逃逸分析小探 on 声zzz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Sun, 25 Oct 2015 09:32:00 +0800</lastBuildDate>
     
-        <atom:link href="http://reusee.github.io/post/escape_analysis/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://reusee.github.io/post/escape_analysis/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>
