@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>给 interface{} 起别名 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/empty-interface-aliasing/index.xml" title="声zzz" />
     </head>
   <body>
@@ -25,11 +24,10 @@
 
 <p>最近在新项目里我都会用到下面的别名定义</p>
 
-<pre><code class="language-go">type (
-  any = interface{}
-  dyn = interface{}
-)
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> (
+  any = <span style="color:#008000;font-weight:bold">interface</span>{}
+  dyn = <span style="color:#008000;font-weight:bold">interface</span>{}
+)</code></pre></div>
 
 <p>any 表示任意类型，用于需要做 type assertion 的场景。
 例如容器类型，或者枚举类型。用泛型可以替代 any。</p>
@@ -41,32 +39,29 @@
 
 <p>类型别名在另外一些场景，也可以起到简化代码的作用，例如</p>
 
-<pre><code class="language-go">type M = map[string]any</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> M = <span style="color:#008000;font-weight:bold">map</span>[<span style="color:#b00040">string</span>]any</code></pre></div>
 
 <p>M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些</p>
 
-<pre><code class="language-go">var jsonData = M{
-  "foo": M{
-    "bar": M{
-      "baz": []M{
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">var</span> jsonData = M{
+  <span style="color:#ba2121">&#34;foo&#34;</span>: M{
+    <span style="color:#ba2121">&#34;bar&#34;</span>: M{
+      <span style="color:#ba2121">&#34;baz&#34;</span>: []M{
         {
-          "quux": 42,
+          <span style="color:#ba2121">&#34;quux&#34;</span>: <span style="color:#666">42</span>,
         },
       },
     },
   },
-  "ok": true,
-}
-</code></pre>
+  <span style="color:#ba2121">&#34;ok&#34;</span>: <span style="color:#008000;font-weight:bold">true</span>,
+}</code></pre></div>
 
 <p>如果不用别名，而是用 map[string]interface{}，就相当冗长了。</p>
 
 <p>虽然类型别名的初衷并不是简化代码，而是方便重构，但既然具备上面所述的几个优点，那就可以用。</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -86,15 +81,12 @@
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>golang变量逃逸分析小探 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/escape_analysis/index.xml" title="声zzz" />
     </head>
   <body>
@@ -39,7 +38,7 @@ a.go:1265: leaking param content: p
 a.go:1265: leaking param: p
 a.go:1265: leaking param content: a
 a.go:1268: (*pp).doPrint p.fmt does not escape
-a.go:1272: (*pp).doPrint &reflect.i·2 does not escape
+a.go:1272: (*pp).doPrint &amp;reflect.i·2 does not escape
 a.go:1274: (*pp).doPrint p.buf does not escape
 a.go:1280: (*pp).doPrint p.buf does not escape
 a.go:150: (*pp).free ignoring self-assignment to p.buf
@@ -54,7 +53,8 @@ a.go:17: b escapes to heap
 a.go:15: moved to heap: a
 </code></pre>
 
-<p>从最下一句往上分析：
+<p>从最下一句往上分析：</p>
+
 <pre><code>a被移到堆上
 因为b逃逸到堆上
 Println的a参数（就是传入的b变量组成的[]interface{}）的内容泄漏
@@ -64,102 +64,99 @@ Fprintln的w、a参数都泄漏
 *pp.free的p参数（就是receiver）泄漏
 该receiver逃逸到heap
 ppFree逃逸到heap（这是个全局变量）
-</code></pre></p>
+</code></pre>
 
 <p>把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。</p>
 
 <p>继续往上分析，然后居然发现这条：</p>
 
-<pre><code>a.go:1272: reflect.t·2 escapes to heap</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">1272</span>: reflect.t<span style="">·</span><span style="color:#666">2</span> escapes to heap</code></pre></div>
 
 <p>对应的代码是：</p>
 
-<pre><code>isString := arg != nil && reflect.TypeOf(arg).Kind() == reflect.String</pre></code>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">isString <span style="color:#666">:=</span> arg <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> <span style="color:#666">&amp;&amp;</span> reflect.<span style="color:#00f">TypeOf</span>(arg).<span style="color:#00f">Kind</span>() <span style="color:#666">==</span> reflect.String</code></pre></div>
 
-reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：
+<p>reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：</p>
 
-<pre><code class="language-go">package main
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
-import "reflect"
+<span style="color:#008000;font-weight:bold">import</span> <span style="color:#ba2121">&#34;reflect&#34;</span>
 
-func main() {
-    a := &struct{}{}
-    _ = reflect.TypeOf(a).Kind()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	a <span style="color:#666">:=</span> <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span>{}{}
+	_ = reflect.<span style="color:#00f">TypeOf</span>(a).<span style="color:#00f">Kind</span>()
+}</code></pre></div>
 
 <p>于是再去看reflect.Type.Kind()的代码，是这样的：</p>
 
-<pre><code class="language-go">func (t *rtype) Kind() Kind { return Kind(t.kind & kindMask) }</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (t <span style="color:#666">*</span>rtype) <span style="color:#00f">Kind</span>() Kind { <span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">Kind</span>(t.kind <span style="color:#666">&amp;</span> kindMask) }</code></pre></div>
 
 <p>于是问题变成，为什么reflect.TypeOf(arg).Kind()会导致arg逃逸。</p>
 
 <p>按照前面的办法，复制reflect包的内容到文件里的话，会比较麻烦，因为有些函数是定义在runtime包里的。
 所以只要一些骨架，能重现就行：</p>
 
-<pre><code class="language-go">package main
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
-import (
-    "unsafe"
+<span style="color:#008000;font-weight:bold">import</span> (
+	<span style="color:#ba2121">&#34;unsafe&#34;</span>
 )
 
-type Kind uint
+<span style="color:#008000;font-weight:bold">type</span> Kind <span style="color:#b00040">uint</span>
 
-const kindMask = (1 << 5) - 1
+<span style="color:#008000;font-weight:bold">const</span> kindMask = (<span style="color:#666">1</span> <span style="color:#666">&lt;&lt;</span> <span style="color:#666">5</span>) <span style="color:#666">-</span> <span style="color:#666">1</span>
 
-type Type interface {
-    Kind() Kind
+<span style="color:#008000;font-weight:bold">type</span> Type <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">Kind</span>() Kind
 }
 
-func TypeOf(i interface{}) Type {
-    eface := *(*emptyInterface)(unsafe.Pointer(&i))
-    return toType(eface.typ)
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">TypeOf</span>(i <span style="color:#008000;font-weight:bold">interface</span>{}) Type {
+	eface <span style="color:#666">:=</span> <span style="color:#666">*</span>(<span style="color:#666">*</span>emptyInterface)(unsafe.<span style="color:#00f">Pointer</span>(<span style="color:#666">&amp;</span>i))
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">toType</span>(eface.typ)
 }
 
-func toType(t *rtype) Type {
-    if t == nil {
-        return nil
-    }
-    return t
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">toType</span>(t <span style="color:#666">*</span>rtype) Type {
+	<span style="color:#008000;font-weight:bold">if</span> t <span style="color:#666">==</span> <span style="color:#008000;font-weight:bold">nil</span> {
+		<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">nil</span>
+	}
+	<span style="color:#008000;font-weight:bold">return</span> t
 }
 
-type rtype struct {
-    kind uint8 // enumeration for C
+<span style="color:#008000;font-weight:bold">type</span> rtype <span style="color:#008000;font-weight:bold">struct</span> {
+	kind <span style="color:#b00040">uint8</span> <span style="color:#408080;font-style:italic">// enumeration for C
+</span><span style="color:#408080;font-style:italic"></span>}
+
+<span style="color:#008000;font-weight:bold">func</span> (t <span style="color:#666">*</span>rtype) <span style="color:#00f">Kind</span>() Kind { <span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">Kind</span>(t.kind <span style="color:#666">&amp;</span> kindMask) }
+
+<span style="color:#008000;font-weight:bold">type</span> emptyInterface <span style="color:#008000;font-weight:bold">struct</span> {
+	typ  <span style="color:#666">*</span>rtype
+	word unsafe.Pointer
 }
 
-func (t *rtype) Kind() Kind { return Kind(t.kind & kindMask) }
-
-type emptyInterface struct {
-    typ  *rtype
-    word unsafe.Pointer
-}
-
-func main() {
-    a := &struct{}{}
-    _ = TypeOf(a).Kind()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	a <span style="color:#666">:=</span> <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span>{}{}
+	_ = <span style="color:#00f">TypeOf</span>(a).<span style="color:#00f">Kind</span>()
+}</code></pre></div>
 
 <p>上面代码的go tool compile -m 结果是：</p>
 
-<pre><code>a.go:20: can inline toType
-a.go:15: can inline TypeOf
-a.go:17: inlining call to toType
-a.go:31: can inline (*rtype).Kind
-a.go:40: inlining call to TypeOf
-a.go:40: inlining call to toType
-a.go:17: t escapes to heap
-a.go:15: leaking param: i to result ~r1 level=0
-a.go:16: TypeOf &i does not escape
-a.go:24: t escapes to heap
-a.go:20: leaking param: t to result ~r1 level=0
-a.go:31: (*rtype).Kind t does not escape
-a.go:40: t escapes to heap
-a.go:40: a escapes to heap
-a.go:39: &struct {} literal escapes to heap
-a.go:40: main &i does not escape
-<autogenerated>:1: leaking param: .this
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">20</span>: can inline toType
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">15</span>: can inline TypeOf
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">17</span>: inlining call to toType
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">31</span>: can <span style="color:#00f">inline</span> (<span style="color:#666">*</span>rtype).Kind
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: inlining call to TypeOf
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: inlining call to toType
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">17</span>: t escapes to heap
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">15</span>: leaking param: i to result <span style="">~</span>r1 level=<span style="color:#666">0</span>
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">16</span>: TypeOf <span style="color:#666">&amp;</span>i does not escape
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">24</span>: t escapes to heap
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">20</span>: leaking param: t to result <span style="">~</span>r1 level=<span style="color:#666">0</span>
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">31</span>: (<span style="color:#666">*</span>rtype).Kind t does not escape
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: t escapes to heap
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: a escapes to heap
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">39</span>: <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span> {} literal escapes to heap
+a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: main <span style="color:#666">&amp;</span>i does not escape
+&lt;autogenerated&gt;:<span style="color:#666">1</span>: leaking param: .this</code></pre></div>
 
 <p>a在堆上分配了。</p>
 
@@ -169,21 +166,20 @@ a.go:40: main &i does not escape
 
 <p>同理，下面的程序：</p>
 
-<pre><code class="language-go">package main
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
-type T interface {
-    Foo()
+<span style="color:#008000;font-weight:bold">type</span> T <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">Foo</span>()
 }
 
-type S struct{}
+<span style="color:#008000;font-weight:bold">type</span> S <span style="color:#008000;font-weight:bold">struct</span>{}
 
-func (s *S) Foo() {}
+<span style="color:#008000;font-weight:bold">func</span> (s <span style="color:#666">*</span>S) <span style="color:#00f">Foo</span>() {}
 
-func main() {
-    s := new(S)
-    T(s).Foo()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	s <span style="color:#666">:=</span> <span style="color:#008000">new</span>(S)
+	<span style="color:#00f">T</span>(s).<span style="color:#00f">Foo</span>()
+}</code></pre></div>
 
 <p>s会移到堆上。
 所以问题变成，为什么调用接口方法会使引用的变量被放到堆上。</p>
@@ -192,10 +188,8 @@ func main() {
 可能转到SSA后端后，会有更好的优化吧。
 所以现在想优化掉这个的话，只能避免使用接口方法了。</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -215,15 +209,12 @@ func main() {
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>

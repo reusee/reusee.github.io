@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>一种对象结构 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/object/index.xml" title="声zzz" />
     </head>
   <body>
@@ -32,22 +31,21 @@
 
 <p>基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下</p>
 
-<pre><code class="language-golang">type Object struct {
-    call    func(*Call)
-    signals map[string][]interface{}
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Object <span style="color:#008000;font-weight:bold">struct</span> {
+	call    <span style="color:#008000;font-weight:bold">func</span>(<span style="color:#666">*</span>Call)
+	signals <span style="color:#008000;font-weight:bold">map</span>[<span style="color:#b00040">string</span>][]<span style="color:#008000;font-weight:bold">interface</span>{}
 }
 
-type Call struct {
-    object   *Object
-    what     int
-    signal   string
-    fun      interface{}
-    doneCond *sync.Cond
-    done     bool
-    arg      []interface{}
-    ret      interface{}
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">type</span> Call <span style="color:#008000;font-weight:bold">struct</span> {
+	object   <span style="color:#666">*</span>Object
+	what     <span style="color:#b00040">int</span>
+	signal   <span style="color:#b00040">string</span>
+	fun      <span style="color:#008000;font-weight:bold">interface</span>{}
+	doneCond <span style="color:#666">*</span>sync.Cond
+	done     <span style="color:#b00040">bool</span>
+	arg      []<span style="color:#008000;font-weight:bold">interface</span>{}
+	ret      <span style="color:#008000;font-weight:bold">interface</span>{}
+}</code></pre></div>
 
 <h3 id="1-线程安全的状态读写">1) 线程安全的状态读写</h3>
 
@@ -56,26 +54,25 @@ Object的主循环会读到这个Call，并在循环内执行此closure。<br />
 所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。<br />
 并发计数器的例子</p>
 
-<pre><code class="language-golang">obj := &struct {
-    *Object
-    i int
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">obj <span style="color:#666">:=</span> <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span> {
+	<span style="color:#666">*</span>Object
+	i <span style="color:#b00040">int</span>
 }{
-    Object: New(),
+	Object: <span style="color:#00f">New</span>(),
 }
 
-n := 512
-wg := new(sync.WaitGroup)
-wg.Add(n)
-for i := 0; i < n; i++ {
-    go func() {
-        obj.Call(func() {
-            obj.i++
-        }).Wait()
-        wg.Done()
-    }()
+n <span style="color:#666">:=</span> <span style="color:#666">512</span>
+wg <span style="color:#666">:=</span> <span style="color:#008000">new</span>(sync.WaitGroup)
+wg.<span style="color:#00f">Add</span>(n)
+<span style="color:#008000;font-weight:bold">for</span> i <span style="color:#666">:=</span> <span style="color:#666">0</span>; i &lt; n; i<span style="color:#666">++</span> {
+	<span style="color:#008000;font-weight:bold">go</span> <span style="color:#008000;font-weight:bold">func</span>() {
+		obj.<span style="color:#00f">Call</span>(<span style="color:#008000;font-weight:bold">func</span>() {
+			obj.i<span style="color:#666">++</span>
+		}).<span style="color:#00f">Wait</span>()
+		wg.<span style="color:#00f">Done</span>()
+	}()
 }
-wg.Wait()
-</code></pre>
+wg.<span style="color:#00f">Wait</span>()</code></pre></div>
 
 <p>在多线程环境下，<code>obj.i++</code>操作是不安全的。但Call方法能保证所有传入的closure在单一goroutine内顺序执行。所以上面的计数器能保证结果是512。</p>
 
@@ -88,13 +85,12 @@ Call方法返回送出的Call结构，Call结构有一个Wait方法。
 调用该方法后，在closure执行完成之前会一直阻塞，也就是，Wait方法返回后，closure一定已经执行完成了。<br />
 Call结构还有个Get方法，可以获得closure的返回值（不支持多值）。Get方法会调用Wait方法。所以一个Call可以作为future使用</p>
 
-<pre><code class="language-golang">// obj如上创建
-call := obj.Call(func() interface{} {
-    obj.i = 8
-    return obj.i
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#408080;font-style:italic">// obj如上创建
+</span><span style="color:#408080;font-style:italic"></span>call <span style="color:#666">:=</span> obj.<span style="color:#00f">Call</span>(<span style="color:#008000;font-weight:bold">func</span>() <span style="color:#008000;font-weight:bold">interface</span>{} {
+	obj.i = <span style="color:#666">8</span>
+	<span style="color:#008000;font-weight:bold">return</span> obj.i
 })
-fmt.Printf("%d\n", call.Get().(int))
-</code></pre>
+fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;%d\n&#34;</span>, call.<span style="color:#00f">Get</span>().(<span style="color:#b00040">int</span>))</code></pre></div>
 
 <p>返回值使用interface{}类型，是为了避免使用reflect。性能差异太大，所以作此取舍。</p>
 
@@ -107,19 +103,18 @@ Emit在Slot执行之前就返回，如果要等待Slot执行可以调用Emit返�
 closure返回一个bool值，为false时，closure只会执行一次。<br />
 例子</p>
 
-<pre><code class="language-golang">// obj如上创建
-obj.i = 5
-obj.Connect("sig", func(i interface{}) bool {
-    obj.i += i.(int)
-    return true
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#408080;font-style:italic">// obj如上创建
+</span><span style="color:#408080;font-style:italic"></span>obj.i = <span style="color:#666">5</span>
+obj.<span style="color:#00f">Connect</span>(<span style="color:#ba2121">&#34;sig&#34;</span>, <span style="color:#008000;font-weight:bold">func</span>(i <span style="color:#008000;font-weight:bold">interface</span>{}) <span style="color:#b00040">bool</span> {
+	obj.i <span style="color:#666">+=</span> i.(<span style="color:#b00040">int</span>)
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">true</span>
 })
-obj.Connect("sig", func(i interface{}) bool {
-    obj.i += i.(int) * 2
-    return false // one-shot signal
-})
-obj.Emit("sig", 5).Wait()
-fmt.Printf("%d\n", obj.i)
-</code></pre>
+obj.<span style="color:#00f">Connect</span>(<span style="color:#ba2121">&#34;sig&#34;</span>, <span style="color:#008000;font-weight:bold">func</span>(i <span style="color:#008000;font-weight:bold">interface</span>{}) <span style="color:#b00040">bool</span> {
+	obj.i <span style="color:#666">+=</span> i.(<span style="color:#b00040">int</span>) <span style="color:#666">*</span> <span style="color:#666">2</span>
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">false</span> <span style="color:#408080;font-style:italic">// one-shot signal
+</span><span style="color:#408080;font-style:italic"></span>})
+obj.<span style="color:#00f">Emit</span>(<span style="color:#ba2121">&#34;sig&#34;</span>, <span style="color:#666">5</span>).<span style="color:#00f">Wait</span>()
+fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;%d\n&#34;</span>, obj.i)</code></pre></div>
 
 <p>输出为20</p>
 
@@ -143,10 +138,8 @@ n:1和n:m驱动就是用于降低goroutine带来的开销的。但因为goroutin
 在我机器上空closure的Benchmark的结果是，Call并Wait是840 ns/op左右，Call不Wait是560 ns/op左右。
 Emit调用的性能也在同一个数量级。</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -166,15 +159,12 @@ Emit调用的性能也在同一个数量级。</p>
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>

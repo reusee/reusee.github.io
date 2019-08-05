@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>用嵌入字段实现代码重用 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/embedded/index.xml" title="声zzz" />
     </head>
   <body>
@@ -23,22 +22,21 @@
   <div class="title">用嵌入字段实现代码重用</div>
   <div class="content"><p>对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。</p>
 
-<pre><code class="language-go">type Foo struct {
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
   sync.Mutex
-  // ... other fields
-}
+  <span style="color:#408080;font-style:italic">// ... other fields
+</span><span style="color:#408080;font-style:italic"></span>}
 
-f := new(Foo)
-f.Lock()
-// ... operations
-f.Unlock()
-</code></pre>
+f <span style="color:#666">:=</span> <span style="color:#008000">new</span>(Foo)
+f.<span style="color:#00f">Lock</span>()
+<span style="color:#408080;font-style:italic">// ... operations
+</span><span style="color:#408080;font-style:italic"></span>f.<span style="color:#00f">Unlock</span>()</code></pre></div>
 
 <p>Foo嵌入了sync.Mutex，所以可以在Foo结构上直接调用Lock和Unlock方法。
 但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。
 Foo结构可以用于任何需要sync.Locker的地方，例如</p>
 
-<pre><code class="language-go">condition := sync.NewCond(new(Foo))</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">condition <span style="color:#666">:=</span> sync.<span style="color:#00f">NewCond</span>(<span style="color:#008000">new</span>(Foo))</code></pre></div>
 
 <p>这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型，
 而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。</p>
@@ -46,116 +44,109 @@ Foo结构可以用于任何需要sync.Locker的地方，例如</p>
 <p>当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。
 例如这个接口</p>
 
-<pre><code class="language-go">type Named interface {
-    PrintName()
-}
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">PrintName</span>()
+}</code></pre></div>
 
 <p>要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一</p>
 
-<pre><code class="language-go">type Named interface {
-    PrintName()
-    GetName() string
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">PrintName</span>()
+	<span style="color:#00f">GetName</span>() <span style="color:#b00040">string</span>
 }
 
-type NamedImpl struct {
-    named Named
+<span style="color:#008000;font-weight:bold">type</span> NamedImpl <span style="color:#008000;font-weight:bold">struct</span> {
+	named Named
 }
 
-func (n NamedImpl) PrintName() {
-    fmt.Printf("name is %s\n", n.named.GetName())
+<span style="color:#008000;font-weight:bold">func</span> (n NamedImpl) <span style="color:#00f">PrintName</span>() {
+	fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;name is %s\n&#34;</span>, n.named.<span style="color:#00f">GetName</span>())
 }
 
-type Foo struct {
-    NamedImpl
-    Name string
+<span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
+	NamedImpl
+	Name <span style="color:#b00040">string</span>
 }
 
-func (f Foo) GetName() string {
-    return f.Name
+<span style="color:#008000;font-weight:bold">func</span> (f Foo) <span style="color:#00f">GetName</span>() <span style="color:#b00040">string</span> {
+	<span style="color:#008000;font-weight:bold">return</span> f.Name
 }
 
-func main() {
-    var f Foo
-    f.Name = "foo"
-    f.NamedImpl = NamedImpl{f}
-    f.PrintName()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	<span style="color:#008000;font-weight:bold">var</span> f Foo
+	f.Name = <span style="color:#ba2121">&#34;foo&#34;</span>
+	f.NamedImpl = NamedImpl{f}
+	f.<span style="color:#00f">PrintName</span>()
+}</code></pre></div>
 
 <p>给Named接口增加一个GetName方法。虽然感觉有点多余但也算可行。</p>
 
 <p>其二，不增加接口方法，只传需要的数据的引用</p>
 
-<pre><code class="language-go">type Named interface {
-    PrintName()
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">PrintName</span>()
 }
 
-type NamedImpl struct {
-    name *string
+<span style="color:#008000;font-weight:bold">type</span> NamedImpl <span style="color:#008000;font-weight:bold">struct</span> {
+	name <span style="color:#666">*</span><span style="color:#b00040">string</span>
 }
 
-func (n NamedImpl) PrintName() {
-    fmt.Printf("name is %s\n", *n.name)
+<span style="color:#008000;font-weight:bold">func</span> (n NamedImpl) <span style="color:#00f">PrintName</span>() {
+	fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;name is %s\n&#34;</span>, <span style="color:#666">*</span>n.name)
 }
 
-type Foo struct {
-    NamedImpl
-    Name string
+<span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
+	NamedImpl
+	Name <span style="color:#b00040">string</span>
 }
 
-func main() {
-  var f Foo
-  f.Name = "foo"
-  f.NamedImpl = NamedImpl{&f.Name}
-  f.PrintName()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+  <span style="color:#008000;font-weight:bold">var</span> f Foo
+  f.Name = <span style="color:#ba2121">&#34;foo&#34;</span>
+  f.NamedImpl = NamedImpl{<span style="color:#666">&amp;</span>f.Name}
+  f.<span style="color:#00f">PrintName</span>()
+}</code></pre></div>
 
 <p>其三，不使用引用，而是嵌入一个closure以获得所需数据</p>
 
-<pre><code class="language-go">type Named interface {
-    PrintName()
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+	<span style="color:#00f">PrintName</span>()
 }
 
-type NamedImpl func() string
+<span style="color:#008000;font-weight:bold">type</span> NamedImpl <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">string</span>
 
-func (n NamedImpl) PrintName() {
-    fmt.Printf("name is %s\n", n())
+<span style="color:#008000;font-weight:bold">func</span> (n NamedImpl) <span style="color:#00f">PrintName</span>() {
+	fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;name is %s\n&#34;</span>, <span style="color:#00f">n</span>())
 }
 
-type Foo struct {
-    NamedImpl
-    Name string
+<span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
+	NamedImpl
+	Name <span style="color:#b00040">string</span>
 }
 
-func main() {
-    var f Foo
-    f.Name = "foo"
-    f.NamedImpl = func() string { return f.Name }
-    f.PrintName()
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	<span style="color:#008000;font-weight:bold">var</span> f Foo
+	f.Name = <span style="color:#ba2121">&#34;foo&#34;</span>
+	f.NamedImpl = <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">string</span> { <span style="color:#008000;font-weight:bold">return</span> f.Name }
+	f.<span style="color:#00f">PrintName</span>()
+}</code></pre></div>
 
 <p>以上例子中，其他类型要实现Named接口，可以不实现PrintName方法，而是嵌入一个NamedImpl。</p>
 
-<pre><code class="language-go">func main() {
-    b := struct {
-        NamedImpl
-        name string
-    }{}
-    b.name = "bar"
-    b.NamedImpl = func() string { return b.name }
-    b.PrintName()
-}
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	b <span style="color:#666">:=</span> <span style="color:#008000;font-weight:bold">struct</span> {
+		NamedImpl
+		name <span style="color:#b00040">string</span>
+	}{}
+	b.name = <span style="color:#ba2121">&#34;bar&#34;</span>
+	b.NamedImpl = <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">string</span> { <span style="color:#008000;font-weight:bold">return</span> b.name }
+	b.<span style="color:#00f">PrintName</span>()
+}</code></pre></div>
 
 <p>这就实现了代码的重用。</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -175,15 +166,12 @@ func main() {
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>

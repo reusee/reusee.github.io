@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>go处理错误的另一种方式 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/error-handling/index.xml" title="声zzz" />
     </head>
   <body>
@@ -23,11 +22,10 @@
   <div class="title">go处理错误的另一种方式</div>
   <div class="content"><p>go处理错误常见的方式是</p>
 
-<pre><code class="language-go">err := funcReturningError()
-if err != nil {
-  // 处理错误
-}
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">err <span style="color:#666">:=</span> <span style="color:#00f">funcReturningError</span>()
+<span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+  <span style="color:#408080;font-style:italic">// 处理错误
+</span><span style="color:#408080;font-style:italic"></span>}</code></pre></div>
 
 <p>然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。</p>
 
@@ -38,11 +36,10 @@ if err != nil {
 
 <p>首先是Err结构体，定义如下</p>
 
-<pre><code class="language-go">type Err struct {
-  Pkg, Info string
-  Err error
-}
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Err <span style="color:#008000;font-weight:bold">struct</span> {
+  Pkg, Info <span style="color:#b00040">string</span>
+  Err <span style="color:#b00040">error</span>
+}</code></pre></div>
 
 <p>Pkg用于标识抛出错误的包，Info是对错误的描述。Err用于包装另一个错误，一般是当前函数所调用的函数返回的，可以实现类似java的chained exception的机制，后面再细说。</p>
 
@@ -50,12 +47,11 @@ if err != nil {
 
 <p>然后是ce函数（check error）</p>
 
-<pre><code class="language-go">func ce(err error, info string) {
-  if err != nil {
-    panic(me(err, info))
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">ce</span>(err <span style="color:#b00040">error</span>, info <span style="color:#b00040">string</span>) {
+  <span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+    <span style="color:#008000">panic</span>(<span style="color:#00f">me</span>(err, info))
   }
-}
-</code></pre>
+}</code></pre></div>
 
 <p>这个函数检查err参数是否为nil，如果不是，则包装出一个Err结构，然后用panic抛出。
 这个就是用于替代if err != nil { &hellip; }的了。</p>
@@ -63,81 +59,76 @@ if err != nil {
 <p>错误用panic抛出后，必须在某个边界recover，API不应该对外暴露panic，否则会和go社区整体的理念不合，自找烦恼。
 负责这个的是ct函数（catch error）</p>
 
-<pre><code class="language-go">func ct(err *error) {
-  if p := recover(); p != nil {
-    if e, ok := p.(error); ok {
-      *err = e
-    } else {
-      panic(p)
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">ct</span>(err <span style="color:#666">*</span><span style="color:#b00040">error</span>) {
+  <span style="color:#008000;font-weight:bold">if</span> p <span style="color:#666">:=</span> <span style="color:#008000">recover</span>(); p <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+    <span style="color:#008000;font-weight:bold">if</span> e, ok <span style="color:#666">:=</span> p.(<span style="color:#b00040">error</span>); ok {
+      <span style="color:#666">*</span>err = e
+    } <span style="color:#008000;font-weight:bold">else</span> {
+      <span style="color:#008000">panic</span>(p)
     }
   }
-}
-</code></pre>
+}</code></pre></div>
 
 <p>因为用到了recover，所以ct只能在defer函数里调用。它首先recover()，然后看是否是error，是则将其赋值到传入的*error处，否则重新panic抛出</p>
 
 <p>来看看它是如何减少代码的，以 <a href="https://blog.golang.org/errors-are-values">https://blog.golang.org/errors-are-values</a> 的一段代码为例</p>
 
-<pre><code class="language-go">_, err = fd.Write(p0[a:b])
-if err != nil {
-  return err
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">_, err = fd.<span style="color:#00f">Write</span>(p0[a:b])
+<span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+  <span style="color:#008000;font-weight:bold">return</span> err
 }
-_, err = fd.Write(p1[c:d])
-if err != nil {
-  return err
+_, err = fd.<span style="color:#00f">Write</span>(p1[c:d])
+<span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+  <span style="color:#008000;font-weight:bold">return</span> err
 }
-_, err = fd.Write(p2[e:f])
-if err != nil {
-  return err
-}
-</code></pre>
+_, err = fd.<span style="color:#00f">Write</span>(p2[e:f])
+<span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+  <span style="color:#008000;font-weight:bold">return</span> err
+}</code></pre></div>
 
 <p>用上述机制，可以写成</p>
 
-<pre><code class="language-go">defer ct(&err)
-_, err = fd.Write(p0[a:b])
-ce(err, "write p0")
-_, err = fd.Write(p1[c:d])
-ce(err, "write p1")
-_, err = fd.Write(p2[e:f])
-ce(err, "write p2")
-</code></pre>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">defer</span> <span style="color:#00f">ct</span>(<span style="color:#666">&amp;</span>err)
+_, err = fd.<span style="color:#00f">Write</span>(p0[a:b])
+<span style="color:#00f">ce</span>(err, <span style="color:#ba2121">&#34;write p0&#34;</span>)
+_, err = fd.<span style="color:#00f">Write</span>(p1[c:d])
+<span style="color:#00f">ce</span>(err, <span style="color:#ba2121">&#34;write p1&#34;</span>)
+_, err = fd.<span style="color:#00f">Write</span>(p2[e:f])
+<span style="color:#00f">ce</span>(err, <span style="color:#ba2121">&#34;write p2&#34;</span>)</code></pre></div>
 
 <p>代码没有那样繁琐了。</p>
 
 <p>另外还有一个好处是，因为Err包装了上一个错误，所以定位错误比较容易。例如下面程序</p>
 
-<pre><code class="language-go">package main
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
-func foo() (err error) {
-    defer ct(&err)
-    ce(bar(), "call bar")
-    return
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">foo</span>() (err <span style="color:#b00040">error</span>) {
+	<span style="color:#008000;font-weight:bold">defer</span> <span style="color:#00f">ct</span>(<span style="color:#666">&amp;</span>err)
+	<span style="color:#00f">ce</span>(<span style="color:#00f">bar</span>(), <span style="color:#ba2121">&#34;call bar&#34;</span>)
+	<span style="color:#008000;font-weight:bold">return</span>
 }
 
-func bar() (err error) {
-    defer ct(&err)
-    ce(baz(), "call baz")
-    return
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">bar</span>() (err <span style="color:#b00040">error</span>) {
+	<span style="color:#008000;font-weight:bold">defer</span> <span style="color:#00f">ct</span>(<span style="color:#666">&amp;</span>err)
+	<span style="color:#00f">ce</span>(<span style="color:#00f">baz</span>(), <span style="color:#ba2121">&#34;call baz&#34;</span>)
+	<span style="color:#008000;font-weight:bold">return</span>
 }
 
-func baz() (err error) {
-    return me(nil, "baz")
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">baz</span>() (err <span style="color:#b00040">error</span>) {
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">me</span>(<span style="color:#008000;font-weight:bold">nil</span>, <span style="color:#ba2121">&#34;baz&#34;</span>)
 }
 
-func main() {
-  ce(foo(), "call foo")
-}
-</code></pre>
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+  <span style="color:#00f">ce</span>(<span style="color:#00f">foo</span>(), <span style="color:#ba2121">&#34;call foo&#34;</span>)
+}</code></pre></div>
 
 <p>paniclog是这样的</p>
 
-<pre>
-panic: foobar: call bar
+<pre><code>panic: foobar: call bar
 foobar: call baz
 foobar: baz
 ...
-</pre>
+</code></pre>
 
 <p>可以看出最外层的error包含了直到最内层的信息，包括包名foobar（这里只用到一个包所以体现不出），比起直接将最内层的error往上抛，要直观得多。</p>
 
@@ -151,10 +142,8 @@ foobar: baz
 <p>以上ct、me、ce等函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
 用的代码生成工具是 <a href="https://github.com/reusee/ccg">https://github.com/reusee/ccg</a> ，可能会有另外一篇博文说说这个。</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -174,15 +163,12 @@ foobar: baz
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>

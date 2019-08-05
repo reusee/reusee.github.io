@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>再议错误处理 - 声zzz</title>
     <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
-    <link href="https://reusee.github.io/css/zenburn.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/error-handling-2/index.xml" title="声zzz" />
     </head>
   <body>
@@ -40,15 +39,14 @@ try 提案寿终正寝了，我是觉得可惜的。很多反对 try 提案的�
 check 和 catch 函数不再是全局函数，而是由一个构造函数返回，而这个构造函数的参数，是一个包装错误的函数。
 构造函数的签名为</p>
 
-<pre><code class="language-go">func New(
-    makeErr MakeErr,
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">New</span>(
+	makeErr MakeErr,
 ) (
-    check func(err error, args ...interface{}),
-    catch func(errp *error, args ...interface{}),
+	check <span style="color:#008000;font-weight:bold">func</span>(err <span style="color:#b00040">error</span>, args <span style="color:#666">...</span><span style="color:#008000;font-weight:bold">interface</span>{}),
+	catch <span style="color:#008000;font-weight:bold">func</span>(errp <span style="color:#666">*</span><span style="color:#b00040">error</span>, args <span style="color:#666">...</span><span style="color:#008000;font-weight:bold">interface</span>{}),
 ) {
 
-type MakeErr = func(error, ...interface{}) error
-</code></pre>
+<span style="color:#008000;font-weight:bold">type</span> MakeErr = <span style="color:#008000;font-weight:bold">func</span>(<span style="color:#b00040">error</span>, <span style="color:#666">...</span><span style="color:#008000;font-weight:bold">interface</span>{}) <span style="color:#b00040">error</span></code></pre></div>
 
 <p>这种设计，比起之前使用固定的 Error 类型，要更灵活。
 因为不同的项目，使用的 Error 可能不同，应该允许项目自己实现 makeErr。</p>
@@ -60,29 +58,28 @@ type MakeErr = func(error, ...interface{}) error
 
 <p>try 提案里的 CopyFile 函数，用这个包处理错误的话，是这样的</p>
 
-<pre><code class="language-go">func CopyFile(src, dst string) (err error) {
-  defer catch(&err, "copy %s to %s", src, dst)
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">CopyFile</span>(src, dst <span style="color:#b00040">string</span>) (err <span style="color:#b00040">error</span>) {
+  <span style="color:#008000;font-weight:bold">defer</span> <span style="color:#00f">catch</span>(<span style="color:#666">&amp;</span>err, <span style="color:#ba2121">&#34;copy %s to %s&#34;</span>, src, dst)
 
-  r, err := os.Open(src)
-  ce(err, "open %s", src)
-  defer r.Close()
+  r, err <span style="color:#666">:=</span> os.<span style="color:#00f">Open</span>(src)
+  <span style="color:#00f">ce</span>(err, <span style="color:#ba2121">&#34;open %s&#34;</span>, src)
+  <span style="color:#008000;font-weight:bold">defer</span> r.<span style="color:#00f">Close</span>()
 
-  w, err := os.Create(dst)
-  ce(err, "create %s", dst)
-  defer func() {
-    w.Close()
-    if err != nil {
-      os.Remove(dst)
+  w, err <span style="color:#666">:=</span> os.<span style="color:#00f">Create</span>(dst)
+  <span style="color:#00f">ce</span>(err, <span style="color:#ba2121">&#34;create %s&#34;</span>, dst)
+  <span style="color:#008000;font-weight:bold">defer</span> <span style="color:#008000;font-weight:bold">func</span>() {
+    w.<span style="color:#00f">Close</span>()
+    <span style="color:#008000;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+      os.<span style="color:#00f">Remove</span>(dst)
     }
   }()
 
-  _, err := io.Copy(w, r)
-  ce(err)
-  ce(w.Close())
+  _, err <span style="color:#666">:=</span> io.<span style="color:#00f">Copy</span>(w, r)
+  <span style="color:#00f">ce</span>(err)
+  <span style="color:#00f">ce</span>(w.<span style="color:#00f">Close</span>())
 
-  return nil
-}
-</code></pre>
+  <span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">nil</span>
+}</code></pre></div>
 
 <p>如果 try 提案实现了的话，ce(err, &ldquo;open %s&rdquo;, src) 就可以写成 try(wrap(err, &ldquo;open %s&rdquo;))。
 wrap 在 err 不为 nil 时才包装。</p>
@@ -93,10 +90,8 @@ wrap 在 err 不为 nil 时才包装。</p>
 我喜欢一个语句接一个语句地表达逻辑，而不是用链式调用。
 本来这种方式，应该结合类似 do notation 的机制的，至少没有一堆行首的 .</p>
 </div>
-</div>
-
-<div id="comments">
-<div id="disqus_thread"></div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
 <script type="application/javascript">
     var disqus_config = function () {
     
@@ -116,15 +111,12 @@ wrap 在 err 不为 nil 时才包装。</p>
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
 </div>
 
 
+    </div>
 
-  </div>
-
-  <script type="text/javascript" src="https://reusee.github.io/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <script type="text/javascript" src="https://reusee.github.io/js/all.js"></script>
   </body>
 
 </html>
