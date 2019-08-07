@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>手工分配和回收 []byte on 声zzz</title>
+    <link>https://reusee.github.io/post/manage-byte-slices-manually/</link>
+    <description>Recent content in 手工分配和回收 []byte on 声zzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    
+        <atom:link href="https://reusee.github.io/post/manage-byte-slices-manually/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+  </channel>
+</rss>
+
