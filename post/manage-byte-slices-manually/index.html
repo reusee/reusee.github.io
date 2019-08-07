@@ -97,18 +97,16 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 
 <p>回收就是将 []byte 放回 sync.Pool。</p>
 
+<p>如果级别是 -1，表示这是 make 分配的，不需要管理。</p>
+
 <div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (b Bytes) <span style="color:#00f">Put</span>() {
 	<span style="color:#008000;font-weight:bold">if</span> b.class <span style="color:#666">==</span> <span style="color:#666">-</span><span style="color:#666">1</span> {
 		<span style="color:#008000;font-weight:bold">return</span>
 	}
-	bytesPools[b.class].<span style="color:#00f">Put</span>(b.Bytes[:<span style="color:#008000">cap</span>(b.Bytes):<span style="color:#008000">cap</span>(b.Bytes)])
+	bytesPools[b.class].<span style="color:#00f">Put</span>(b.Bytes)
 }</code></pre></div>
 
-<p>如果级别是 -1，表示这是 make 分配的，不需要管理。</p>
-
-<p>放回时，需要将切片的大小，改回切片的容量，因为分配的时候，切片大小可能是小于切片容量的。</p>
-
-<h3 id="保证正确">保证正确</h3>
+<h3 id="正确性保证">正确性保证</h3>
 
 <p>手工管理对象的难点在于确定对象的生命期。
 如果回收过早，或者回收后扔有指针指向内部，就可能引发竞态。

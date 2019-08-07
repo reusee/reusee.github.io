@@ -94,18 +94,16 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 
 &lt;p&gt;回收就是将 []byte 放回 sync.Pool。&lt;/p&gt;
 
+&lt;p&gt;如果级别是 -1，表示这是 make 分配的，不需要管理。&lt;/p&gt;
+
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (b Bytes) &lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;() {
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; b.class &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt; {
 		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
 	}
-	bytesPools[b.class].&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;(b.Bytes[:&lt;span style=&#34;color:#008000&#34;&gt;cap&lt;/span&gt;(b.Bytes):&lt;span style=&#34;color:#008000&#34;&gt;cap&lt;/span&gt;(b.Bytes)])
+	bytesPools[b.class].&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;(b.Bytes)
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;如果级别是 -1，表示这是 make 分配的，不需要管理。&lt;/p&gt;
-
-&lt;p&gt;放回时，需要将切片的大小，改回切片的容量，因为分配的时候，切片大小可能是小于切片容量的。&lt;/p&gt;
-
-&lt;h3 id=&#34;保证正确&#34;&gt;保证正确&lt;/h3&gt;
+&lt;h3 id=&#34;正确性保证&#34;&gt;正确性保证&lt;/h3&gt;
 
 &lt;p&gt;手工管理对象的难点在于确定对象的生命期。
 如果回收过早，或者回收后扔有指针指向内部，就可能引发竞态。
