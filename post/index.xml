@@ -6,15 +6,184 @@
     <description>Recent content in Posts on 声zzz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 12:00:00 +0800</lastBuildDate>
     
         <atom:link href="https://reusee.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>生命期管理</title>
+      <link>https://reusee.github.io/post/lifetime-management/</link>
+      <pubDate>Wed, 07 Aug 2019 12:00:00 +0800</pubDate>
+      
+      <guid>https://reusee.github.io/post/lifetime-management/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;https://reusee.github.io/post/manage-byte-slices-manually/&#34; target=&#34;_blank&#34;&gt;上一篇文章&lt;/a&gt;
+探讨了一种手工管理对象的方式。这种方式的难点在于确定生命期，在正确的时机执行回收。
+本文继续探讨生命期管理的可行手段。&lt;/p&gt;
+
+&lt;h3 id=&#34;最简单的场景&#34;&gt;最简单的场景&lt;/h3&gt;
+
+&lt;p&gt;最简单的场景是，生命期只有数个顺序语句，这种场景不需要特别的处理：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+	buf &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;32&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1024&lt;/span&gt;)
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; buf.&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;()
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; io.&lt;span style=&#34;color:#00f&#34;&gt;CopyBuffer&lt;/span&gt;(dst, src, buf)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;如果生命期在大段代码的中间，可以用函数字面量的调用来构造一个函数体，并在其中调用defer：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (l &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+	&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
+		buf &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;32&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1024&lt;/span&gt;)
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; buf.&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;()
+		l, err = io.&lt;span style=&#34;color:#00f&#34;&gt;CopyBuffer&lt;/span&gt;(dst, src, buf)
+	}()
+	&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;管理多个分配的对象&#34;&gt;管理多个分配的对象&lt;/h3&gt;
+
+&lt;p&gt;如果一段逻辑内有多个对象的分配，并且这段逻辑的边界可以明确划分，那多个对象的生命期可以统一成一个，逻辑结束后统一回收。&lt;/p&gt;
+
+&lt;p&gt;首先可以引入一个生命期类型：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Life &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+  ended &lt;span style=&#34;color:#b00040&#34;&gt;int32&lt;/span&gt;
+  sync.Mutex
+  endOnce  sync.Once
+  endFuncs []&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;()
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;它可以注册多个函数，在生命期结束时一一调用：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;OnEnd&lt;/span&gt;(fn &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;()) {
+	l.&lt;span style=&#34;color:#00f&#34;&gt;Lock&lt;/span&gt;()
+	l.endFuncs = &lt;span style=&#34;color:#008000&#34;&gt;append&lt;/span&gt;(l.endFuncs, fn)
+	l.&lt;span style=&#34;color:#00f&#34;&gt;Unlock&lt;/span&gt;()
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;End&lt;/span&gt;() {
+	l.endOnce.&lt;span style=&#34;color:#00f&#34;&gt;Do&lt;/span&gt;(&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; _, fn &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;range&lt;/span&gt; l.endFuncs {
+			&lt;span style=&#34;color:#00f&#34;&gt;fn&lt;/span&gt;()
+		}
+		atomic.&lt;span style=&#34;color:#00f&#34;&gt;AddInt32&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;l.ended, &lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;)
+	})
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;使用例子：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Request &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+  Life
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Handle&lt;/span&gt;(req &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Request) {
+  &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; req.&lt;span style=&#34;color:#00f&#34;&gt;End&lt;/span&gt;()
+  res &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;make&lt;/span&gt;(&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;chan&lt;/span&gt; []&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;, &lt;span style=&#34;color:#666&#34;&gt;2&lt;/span&gt;)
+  &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
+    bs &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;42&lt;/span&gt;)
+    req.&lt;span style=&#34;color:#00f&#34;&gt;OnEnd&lt;/span&gt;(bs.Put)
+    &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;    res &lt;span style=&#34;color:#666&#34;&gt;&amp;lt;-&lt;/span&gt; bs.Bytes
+  }()
+  &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
+    bs2 &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;42&lt;/span&gt;)
+    req.&lt;span style=&#34;color:#00f&#34;&gt;OnEnd&lt;/span&gt;(bs.Put)
+    &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;    res &lt;span style=&#34;color:#666&#34;&gt;&amp;lt;-&lt;/span&gt; bs2.Bytes
+  }
+  sub &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; (&lt;span style=&#34;color:#666&#34;&gt;&amp;lt;-&lt;/span&gt;res)[:&lt;span style=&#34;color:#666&#34;&gt;20&lt;/span&gt;]
+  sub2 &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; (&lt;span style=&#34;color:#666&#34;&gt;&amp;lt;-&lt;/span&gt;res)[&lt;span style=&#34;color:#666&#34;&gt;20&lt;/span&gt;:]
+  &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;如上例所示，bs 和 bs2 的生命期，就不是在一个函数体之内了，它们还会被 sub 和 sub2 引用。所以不能用简单的 defer 来实现回收。&lt;/p&gt;
+
+&lt;p&gt;这种场景，就没有必要一一考虑 sub、sub2 的生命期，只需要统一使用一个足够长的生命期，就可以了。&lt;/p&gt;
+
+&lt;p&gt;上例的做法是每个请求一个生命期，处理完请求就统一回收。&lt;/p&gt;
+
+&lt;h3 id=&#34;防止泄漏&#34;&gt;防止泄漏&lt;/h3&gt;
+
+&lt;p&gt;如果用 getBytes 获得的对象，忘记调用 Put，那这个对象就会泄漏到自动回收里。
+当然，这种泄漏对逻辑正确性是没有影响的，只不过没有起到减轻 GC 负担的作用而已。&lt;/p&gt;
+
+&lt;p&gt;要防范泄漏，首先是要检测出泄漏。
+将 runtime.MemProfileRate 设为 1，可以使 mem profiler 记录每一次分配，这样就能用 runtime.MemProfile 得到精确的分配信息。
+当然这样会稍微影响性能，所以只适用于开发期。&lt;/p&gt;
+
+&lt;p&gt;如果从分配信息里发现 getBytes 里的 make 处分配的内存(runtime.MemProfileRecord.AllocBytes)不断增加，那就说明有对象忘记调用 Put。&lt;/p&gt;
+
+&lt;p&gt;要找出未调用回收的对象，可以根据具体的业务特性，给对象设一个最大存活期，超过这个最大存活期而没有回收，就报错。&lt;/p&gt;
+
+&lt;p&gt;首先给 Life 类型增加 SetMax 方法：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;SetMax&lt;/span&gt;(d time.Duration) {
+	stack &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; debug.&lt;span style=&#34;color:#00f&#34;&gt;Stack&lt;/span&gt;()
+	time.&lt;span style=&#34;color:#00f&#34;&gt;AfterFunc&lt;/span&gt;(d, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; atomic.&lt;span style=&#34;color:#00f&#34;&gt;LoadInt32&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;l.ended) &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt; {
+			&lt;span style=&#34;color:#00f&#34;&gt;pt&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%s\n&amp;#34;&lt;/span&gt;, stack)
+			&lt;span style=&#34;color:#008000&#34;&gt;panic&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;live too long&amp;#34;&lt;/span&gt;)
+		}
+	})
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;然后给 Bytes 类型加上 Life：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Bytes &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life
+	Bytes []&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;
+	class &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(size &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;) Bytes {
+	class &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt;
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; size &amp;gt; bytesClasses[class] {
+		class&lt;span style=&#34;color:#666&#34;&gt;++&lt;/span&gt;
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; class &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;len&lt;/span&gt;(bytesClasses) {
+			&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;break&lt;/span&gt;
+		}
+	}
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; class &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;len&lt;/span&gt;(bytesClasses) {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; Bytes{
+			Life:  &lt;span style=&#34;color:#008000&#34;&gt;new&lt;/span&gt;(Life),
+			Bytes: &lt;span style=&#34;color:#008000&#34;&gt;make&lt;/span&gt;([]&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;, size),
+			class: &lt;span style=&#34;color:#666&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;,
+		}
+	}
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; Bytes{
+		Life:  &lt;span style=&#34;color:#008000&#34;&gt;new&lt;/span&gt;(Life),
+		Bytes: bytesPools[class].&lt;span style=&#34;color:#00f&#34;&gt;Get&lt;/span&gt;().([]&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;)[:size],
+		class: class,
+	}
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (b Bytes) &lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;() {
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; b.class &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt; {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
+	}
+	bytesPools[b.class].&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;(b.Bytes)
+	b.&lt;span style=&#34;color:#00f&#34;&gt;End&lt;/span&gt;()
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这样就可以在怀疑泄漏的 getBytes 后面再调用 SetMax，提示出未回收的地方。
+或者直接在 getBytes 里调用 SetMax，限制所有分配的对象的存活期。&lt;/p&gt;
+
+&lt;p&gt;当然，这个方法只适用于开发期，因为开销是比较大的。&lt;/p&gt;
+
+&lt;p&gt;上述是一种动态检测的方法，可能用静态的分析也能实现。但受限于本人能力，这方面就无法展开了。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>手工分配和回收 []byte</title>
       <link>https://reusee.github.io/post/manage-byte-slices-manually/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 07 Aug 2019 10:00:00 +0800</pubDate>
       
       <guid>https://reusee.github.io/post/manage-byte-slices-manually/</guid>
       <description>
