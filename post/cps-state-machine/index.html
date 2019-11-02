@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>使用递归函数类型的一种 CPS 状态机写法 - 声zzz</title>
+    <link href="https://reusee.github.io/css/style.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" href="https://reusee.github.io/post/cps-state-machine/index.xml" title="声zzz" />
+    </head>
+  <body>
+    <div id="panel">
+      <ul class="links">
+        <li><a href="/">首页</a></li>
+        <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
+        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
+      </div>
+    </div>
+
+    <div id="right">
+
+<div id="article">
+  <div class="title">使用递归函数类型的一种 CPS 状态机写法</div>
+  <div class="content"><p>go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。</p>
+
+<p>而函数是类型的一种，所以可以定义一个函数类型，它的返回值的类型是这个函数本身。</p>
+
+<p>例如：
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Proc <span style="color:#008000;font-weight:bold">func</span>() Proc</code></pre></div></p>
+
+<p>上面这个类型，可以用来表示状态机中的一个状态，结合 CPS 手法，就可以实现一种协程。</p>
+
+<p>一个例子，从1数到10：</p>
+
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
+
+<span style="color:#008000;font-weight:bold">import</span> <span style="color:#ba2121">&#34;fmt&#34;</span>
+
+<span style="color:#008000;font-weight:bold">type</span> Proc <span style="color:#008000;font-weight:bold">func</span>() Proc
+
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">Count10</span>(n <span style="color:#b00040">int</span>, cont Proc) Proc {
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">func</span>() Proc {
+		fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;%d\n&#34;</span>, n)
+		<span style="color:#008000;font-weight:bold">if</span> n <span style="color:#666">==</span> <span style="color:#666">10</span> {
+			<span style="color:#008000;font-weight:bold">return</span> cont
+		}
+		<span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">Count10</span>(n<span style="color:#666">+</span><span style="color:#666">1</span>, cont)
+	}
+}
+
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	proc <span style="color:#666">:=</span> <span style="color:#00f">Count10</span>(<span style="color:#666">1</span>, <span style="color:#008000;font-weight:bold">nil</span>)
+	<span style="color:#008000;font-weight:bold">for</span> proc <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+		proc = <span style="color:#00f">proc</span>()
+	}
+}</code></pre></div>
+
+<p>上面的 main 函数中，for 语句如果换成</p>
+
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	proc = <span style="color:#00f">proc</span>()
+	proc = <span style="color:#00f">proc</span>()
+	proc = <span style="color:#00f">proc</span>()
+	proc = <span style="color:#00f">proc</span>()</code></pre></div>
+
+<p>则只会打印1到4，这个状态机的步进是可控的。</p>
+
+<p>多个 Proc 也可以实现并发乱序执行：</p>
+
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	rand.<span style="color:#00f">Seed</span>(<span style="color:#008000">int64</span>(time.<span style="color:#00f">Now</span>().<span style="color:#00f">UnixNano</span>()))
+	<span style="color:#008000;font-weight:bold">var</span> procs []Proc
+	<span style="color:#008000;font-weight:bold">for</span> i <span style="color:#666">:=</span> <span style="color:#666">0</span>; i &lt; <span style="color:#666">128</span>; i<span style="color:#666">++</span> {
+		procs = <span style="color:#008000">append</span>(procs, <span style="color:#00f">Count10</span>(<span style="color:#666">1</span>, <span style="color:#008000;font-weight:bold">nil</span>))
+	}
+	<span style="color:#008000;font-weight:bold">for</span> <span style="color:#008000">len</span>(procs) &gt; <span style="color:#666">0</span> {
+		n <span style="color:#666">:=</span> rand.<span style="color:#00f">Intn</span>(<span style="color:#008000">len</span>(procs))
+		<span style="color:#008000;font-weight:bold">if</span> cont <span style="color:#666">:=</span> procs[n](); cont <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> {
+			procs[n] = cont
+		} <span style="color:#008000;font-weight:bold">else</span> {
+			procs = <span style="color:#008000">append</span>(procs[:n], procs[n<span style="color:#666">+</span><span style="color:#666">1</span>:]<span style="color:#666">...</span>)
+		}
+	}
+}</code></pre></div>
+
+<p>如果需要更多状态，可以将状态放入 struct，然后定义 Proc 为该 struct 的方法，这样就能在 Proc 内读写状态。
+一个例子是：<a href="https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11">https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11</a></p>
+
+<p>能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
+不是每门语言都有这些特性，尤其是递归类型定义，一些新出的语言也没有。
+所以并不是语言有很多 fancy 的东西，就是好。基础不牢，地动山摇。
+语言特性做得正交，容易组合使用，不会出现某个特性很难和另一个特性结合使用这种情况，显然是更高明的语言设计哲学。</p>
+</div>
+  <div class="date">2019-11-02</div>
+  <div id="comments">
+  <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "sheng-zzz" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</div>
+
+
+    </div>
+
+  </body>
+
+</html>
+

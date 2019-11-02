@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>使用递归函数类型的一种 CPS 状态机写法 on 声zzz</title>
+    <link>https://reusee.github.io/post/cps-state-machine/</link>
+    <description>Recent content in 使用递归函数类型的一种 CPS 状态机写法 on 声zzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 02 Nov 2019 00:00:00 +0000</lastBuildDate>
+    
+        <atom:link href="https://reusee.github.io/post/cps-state-machine/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+  </channel>
+</rss>
+

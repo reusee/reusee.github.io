@@ -6,10 +6,87 @@
     <description>Recent content on 声zzz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 07 Aug 2019 12:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 02 Nov 2019 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://reusee.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>使用递归函数类型的一种 CPS 状态机写法</title>
+      <link>https://reusee.github.io/post/cps-state-machine/</link>
+      <pubDate>Sat, 02 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://reusee.github.io/post/cps-state-machine/</guid>
+      <description>&lt;p&gt;go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。&lt;/p&gt;
+
+&lt;p&gt;而函数是类型的一种，所以可以定义一个函数类型，它的返回值的类型是这个函数本身。&lt;/p&gt;
+
+&lt;p&gt;例如：
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;上面这个类型，可以用来表示状态机中的一个状态，结合 CPS 手法，就可以实现一种协程。&lt;/p&gt;
+
+&lt;p&gt;一个例子，从1数到10：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Count10&lt;/span&gt;(n &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, cont Proc) Proc {
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc {
+		fmt.&lt;span style=&#34;color:#00f&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%d\n&amp;#34;&lt;/span&gt;, n)
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; n &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;10&lt;/span&gt; {
+			&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; cont
+		}
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Count10&lt;/span&gt;(n&lt;span style=&#34;color:#666&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, cont)
+	}
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
+	proc &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Count10&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt;)
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; proc &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
+		proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+	}
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;上面的 main 函数中，for 语句如果换成&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;则只会打印1到4，这个状态机的步进是可控的。&lt;/p&gt;
+
+&lt;p&gt;多个 Proc 也可以实现并发乱序执行：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
+	rand.&lt;span style=&#34;color:#00f&#34;&gt;Seed&lt;/span&gt;(&lt;span style=&#34;color:#008000&#34;&gt;int64&lt;/span&gt;(time.&lt;span style=&#34;color:#00f&#34;&gt;Now&lt;/span&gt;().&lt;span style=&#34;color:#00f&#34;&gt;UnixNano&lt;/span&gt;()))
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; procs []Proc
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt;; i &amp;lt; &lt;span style=&#34;color:#666&#34;&gt;128&lt;/span&gt;; i&lt;span style=&#34;color:#666&#34;&gt;++&lt;/span&gt; {
+		procs = &lt;span style=&#34;color:#008000&#34;&gt;append&lt;/span&gt;(procs, &lt;span style=&#34;color:#00f&#34;&gt;Count10&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt;))
+	}
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;len&lt;/span&gt;(procs) &amp;gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt; {
+		n &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; rand.&lt;span style=&#34;color:#00f&#34;&gt;Intn&lt;/span&gt;(&lt;span style=&#34;color:#008000&#34;&gt;len&lt;/span&gt;(procs))
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; cont &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; procs[n](); cont &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
+			procs[n] = cont
+		} &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;else&lt;/span&gt; {
+			procs = &lt;span style=&#34;color:#008000&#34;&gt;append&lt;/span&gt;(procs[:n], procs[n&lt;span style=&#34;color:#666&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;:]&lt;span style=&#34;color:#666&#34;&gt;...&lt;/span&gt;)
+		}
+	}
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;如果需要更多状态，可以将状态放入 struct，然后定义 Proc 为该 struct 的方法，这样就能在 Proc 内读写状态。
+一个例子是：&lt;a href=&#34;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&#34;&gt;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
+不是每门语言都有这些特性，尤其是递归类型定义，一些新出的语言也没有。
+所以并不是语言有很多 fancy 的东西，就是好。基础不牢，地动山摇。
+语言特性做得正交，容易组合使用，不会出现某个特性很难和另一个特性结合使用这种情况，显然是更高明的语言设计哲学。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>生命期管理</title>
