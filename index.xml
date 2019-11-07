@@ -17,7 +17,9 @@
       <pubDate>Sat, 02 Nov 2019 00:00:00 +0000</pubDate>
       
       <guid>https://reusee.github.io/post/cps-state-machine/</guid>
-      <description>&lt;p&gt;go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。&lt;/p&gt;
+      <description>
+
+&lt;p&gt;go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。&lt;/p&gt;
 
 &lt;p&gt;而函数是类型的一种，所以可以定义一个函数类型，它的返回值的类型是这个函数本身。&lt;/p&gt;
 
@@ -25,6 +27,8 @@
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
 
 &lt;p&gt;上面这个类型，可以用来表示状态机中的一个状态，结合 CPS 手法，就可以实现一种协程。&lt;/p&gt;
+
+&lt;h3 id=&#34;计数状态机&#34;&gt;计数状态机&lt;/h3&gt;
 
 &lt;p&gt;一个例子，从1数到10：&lt;/p&gt;
 
@@ -80,6 +84,49 @@
 
 &lt;p&gt;如果需要更多状态，可以将状态放入 struct，然后定义 Proc 为该 struct 的方法，这样就能在 Proc 内读写状态。
 一个例子是：&lt;a href=&#34;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&#34;&gt;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;生成器&#34;&gt;生成器&lt;/h3&gt;
+
+&lt;p&gt;对 Proc 的类型稍作修改，可以实现一种生成器&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;上面这个类型，可用于实现 int 序列的生成器。例如 fib 序列：&lt;/p&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc)
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;FibGen&lt;/span&gt;() &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt; {
+	proc &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc) {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc) {
+			&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#00f&#34;&gt;fib&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt;)
+		}
+	}
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (ret &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;) {
+		ret, proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
+	}
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;fib&lt;/span&gt;(a &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, b &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, cont Proc) Proc {
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc) {
+		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color:#666&#34;&gt;+&lt;/span&gt; b, &lt;span style=&#34;color:#00f&#34;&gt;fib&lt;/span&gt;(b, a&lt;span style=&#34;color:#666&#34;&gt;+&lt;/span&gt;b, cont)
+	}
+}
+
+&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
+	gen &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;FibGen&lt;/span&gt;()
+	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt;; i &amp;lt; &lt;span style=&#34;color:#666&#34;&gt;10&lt;/span&gt;; i&lt;span style=&#34;color:#666&#34;&gt;++&lt;/span&gt; {
+		fmt.&lt;span style=&#34;color:#00f&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%d\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#00f&#34;&gt;gen&lt;/span&gt;())
+	}
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;连续调用 gen，可以生成 fib 序列。&lt;/p&gt;
+
+&lt;h3 id=&#34;后记&#34;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
 不是每门语言都有这些特性，尤其是递归类型定义，一些新出的语言也没有。

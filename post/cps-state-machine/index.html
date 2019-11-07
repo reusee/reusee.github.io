@@ -20,7 +20,9 @@
 
 <div id="article">
   <div class="title">使用递归函数类型的一种 CPS 状态机写法</div>
-  <div class="content"><p>go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。</p>
+  <div class="content">
+
+<p>go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。</p>
 
 <p>而函数是类型的一种，所以可以定义一个函数类型，它的返回值的类型是这个函数本身。</p>
 
@@ -28,6 +30,8 @@
 <div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Proc <span style="color:#008000;font-weight:bold">func</span>() Proc</code></pre></div></p>
 
 <p>上面这个类型，可以用来表示状态机中的一个状态，结合 CPS 手法，就可以实现一种协程。</p>
+
+<h3 id="计数状态机">计数状态机</h3>
 
 <p>一个例子，从1数到10：</p>
 
@@ -83,6 +87,49 @@
 
 <p>如果需要更多状态，可以将状态放入 struct，然后定义 Proc 为该 struct 的方法，这样就能在 Proc 内读写状态。
 一个例子是：<a href="https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11">https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11</a></p>
+
+<h3 id="生成器">生成器</h3>
+
+<p>对 Proc 的类型稍作修改，可以实现一种生成器</p>
+
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Proc <span style="color:#008000;font-weight:bold">func</span>() (<span style="color:#b00040">int</span>, Proc)</code></pre></div>
+
+<p>上面这个类型，可用于实现 int 序列的生成器。例如 fib 序列：</p>
+
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
+
+<span style="color:#008000;font-weight:bold">import</span> <span style="color:#ba2121">&#34;fmt&#34;</span>
+
+<span style="color:#008000;font-weight:bold">type</span> Proc <span style="color:#008000;font-weight:bold">func</span>() (<span style="color:#b00040">int</span>, Proc)
+
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">FibGen</span>() <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">int</span> {
+	proc <span style="color:#666">:=</span> <span style="color:#008000;font-weight:bold">func</span>() (<span style="color:#b00040">int</span>, Proc) {
+		<span style="color:#008000;font-weight:bold">return</span> <span style="color:#666">1</span>, <span style="color:#008000;font-weight:bold">func</span>() (<span style="color:#b00040">int</span>, Proc) {
+			<span style="color:#008000;font-weight:bold">return</span> <span style="color:#666">1</span>, <span style="color:#00f">fib</span>(<span style="color:#666">1</span>, <span style="color:#666">1</span>, <span style="color:#008000;font-weight:bold">nil</span>)
+		}
+	}
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">func</span>() (ret <span style="color:#b00040">int</span>) {
+		ret, proc = <span style="color:#00f">proc</span>()
+		<span style="color:#008000;font-weight:bold">return</span>
+	}
+}
+
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">fib</span>(a <span style="color:#b00040">int</span>, b <span style="color:#b00040">int</span>, cont Proc) Proc {
+	<span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">func</span>() (<span style="color:#b00040">int</span>, Proc) {
+		<span style="color:#008000;font-weight:bold">return</span> a <span style="color:#666">+</span> b, <span style="color:#00f">fib</span>(b, a<span style="color:#666">+</span>b, cont)
+	}
+}
+
+<span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+	gen <span style="color:#666">:=</span> <span style="color:#00f">FibGen</span>()
+	<span style="color:#008000;font-weight:bold">for</span> i <span style="color:#666">:=</span> <span style="color:#666">0</span>; i &lt; <span style="color:#666">10</span>; i<span style="color:#666">++</span> {
+		fmt.<span style="color:#00f">Printf</span>(<span style="color:#ba2121">&#34;%d\n&#34;</span>, <span style="color:#00f">gen</span>())
+	}
+}</code></pre></div>
+
+<p>连续调用 gen，可以生成 fib 序列。</p>
+
+<h3 id="后记">后记</h3>
 
 <p>能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
 不是每门语言都有这些特性，尤其是递归类型定义，一些新出的语言也没有。
