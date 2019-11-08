@@ -126,6 +126,8 @@
 
 &lt;p&gt;连续调用 gen，可以生成 fib 序列。&lt;/p&gt;
 
+&lt;p&gt;一个完整的生成器的例子是：&lt;a href=&#34;https://github.com/reusee/sb/blob/bbd151e5dcae0ab38515793de3f1133920dd7e74/marshal.go#L11&#34;&gt;https://github.com/reusee/sb/blob/bbd151e5dcae0ab38515793de3f1133920dd7e74/marshal.go#L11&lt;/a&gt;&lt;/p&gt;
+
 &lt;h3 id=&#34;后记&#34;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
