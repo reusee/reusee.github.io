@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -20,26 +19,20 @@
 
 <div id="article">
   <div class="title">再议错误处理</div>
-  <div class="content"><p>几年前写过<a href="https://reusee.github.io/post/error-handling/" target="_blank">一篇文章</a>，讨论了一种处理错误的方式。
+  <div class="content"><p>几年前写过<!-- raw HTML omitted -->一篇文章<!-- raw HTML omitted -->，讨论了一种处理错误的方式。
 近几年，在不需要压榨性能，或者不需要做覆盖测试的场景里，我都会用这种更简短的方式。</p>
-
 <p>所以，对于 try 提案，我是支持的，因为用 try 可以替代 panic / recover 实现隐式的 return，在性能方面有优势。
 try 提案寿终正寝了，我是觉得可惜的。很多反对 try 提案的人，都不是出于技术性的原因，很多都是非理性的。
 当然，技术性的缺陷也是有的，但我认为还没有严重到，连试验都不做就要放弃的地步。</p>
-
-<p>说回前一篇文章所讨论的方式，最近其实也有改进，单独做了一个包：<a href="https://github.com/reusee/e" target="_blank"><a href="https://github.com/reusee/e">https://github.com/reusee/e</a></a></p>
-
+<p>说回前一篇文章所讨论的方式，最近其实也有改进，单独做了一个包：<!-- raw HTML omitted --><a href="https://github.com/reusee/e">https://github.com/reusee/e</a><!-- raw HTML omitted --></p>
 <p>和以前的实现比较，有下述几个不同点：</p>
-
 <p>首先，panic 抛出的，是经过包装的 thrownError 对象，而不是原先的 error 对象。
 这样做的好处是，可以准确判断 recover 返回的，是不是由错误处理的 panic 抛出的对象。
 以前的做法就比较粗放，很可能会将一些需要 panic 的对象，转化成了 error 返回值。</p>
-
 <p>第二个不同是，error 类型可以有不同的实现。
 check 和 catch 函数不再是全局函数，而是由一个构造函数返回，而这个构造函数的参数，是一个包装错误的函数。
 构造函数的签名为</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">New</span>(
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">New</span>(
 	makeErr MakeErr,
 ) (
 	check <span style="color:#008000;font-weight:bold">func</span>(err <span style="color:#b00040">error</span>, args <span style="color:#666">...</span><span style="color:#008000;font-weight:bold">interface</span>{}),
@@ -47,18 +40,13 @@ check 和 catch 函数不再是全局函数，而是由一个构造函数返回�
 ) {
 
 <span style="color:#008000;font-weight:bold">type</span> MakeErr = <span style="color:#008000;font-weight:bold">func</span>(<span style="color:#b00040">error</span>, <span style="color:#666">...</span><span style="color:#008000;font-weight:bold">interface</span>{}) <span style="color:#b00040">error</span></code></pre></div>
-
 <p>这种设计，比起之前使用固定的 Error 类型，要更灵活。
 因为不同的项目，使用的 Error 可能不同，应该允许项目自己实现 makeErr。</p>
-
 <p>当然这个包也自带了一个 makeErr 的实现，支持错误链、文件和行号等等，
 也实现了标准库新加入的 Unwrap 方法，能使用 Is、As 等，足够好用了。</p>
-
 <p>check 和 catch 的实现和前一篇文章的区别不大。</p>
-
 <p>try 提案里的 CopyFile 函数，用这个包处理错误的话，是这样的</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">CopyFile</span>(src, dst <span style="color:#b00040">string</span>) (err <span style="color:#b00040">error</span>) {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">CopyFile</span>(src, dst <span style="color:#b00040">string</span>) (err <span style="color:#b00040">error</span>) {
   <span style="color:#008000;font-weight:bold">defer</span> <span style="color:#00f">catch</span>(<span style="color:#666">&amp;</span>err, <span style="color:#ba2121">&#34;copy %s to %s&#34;</span>, src, dst)
 
   r, err <span style="color:#666">:=</span> os.<span style="color:#00f">Open</span>(src)
@@ -80,10 +68,8 @@ check 和 catch 函数不再是全局函数，而是由一个构造函数返回�
 
   <span style="color:#008000;font-weight:bold">return</span> <span style="color:#008000;font-weight:bold">nil</span>
 }</code></pre></div>
-
 <p>如果 try 提案实现了的话，ce(err, &ldquo;open %s&rdquo;, src) 就可以写成 try(wrap(err, &ldquo;open %s&rdquo;))。
 wrap 在 err 不为 nil 时才包装。</p>
-
 <p>据说泛型实现之后，错误处理的方式也会重新考虑。
 结合泛型的话，估计还是走那种 monadic 的路数吧。
 但做成 rust 那样，我是不喜欢的。

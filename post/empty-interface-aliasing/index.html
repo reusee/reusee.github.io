@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -21,29 +20,20 @@
 <div id="article">
   <div class="title">给 interface{} 起别名</div>
   <div class="content"><p>在 go 程序里，interface{} 是常用的类型。即使会加入泛型，它仍然有需要用到的地方，例如需要运行期反射的场景。</p>
-
 <p>最近在新项目里我都会用到下面的别名定义</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> (
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> (
   any = <span style="color:#008000;font-weight:bold">interface</span>{}
   dyn = <span style="color:#008000;font-weight:bold">interface</span>{}
 )</code></pre></div>
-
 <p>any 表示任意类型，用于需要做 type assertion 的场景。
 例如容器类型，或者枚举类型。用泛型可以替代 any。</p>
-
 <p>dyn 表示动态类型，用于需要做 reflect 的场景。
 这些场景是泛型不能替代的，例如动态调用、赋值等。</p>
-
 <p>使用这些别名，一来比较简短，二来语义可以更清晰。</p>
-
 <p>类型别名在另外一些场景，也可以起到简化代码的作用，例如</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> M = <span style="color:#008000;font-weight:bold">map</span>[<span style="color:#b00040">string</span>]any</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> M = <span style="color:#008000;font-weight:bold">map</span>[<span style="color:#b00040">string</span>]any</code></pre></div>
 <p>M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">var</span> jsonData = M{
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">var</span> jsonData = M{
   <span style="color:#ba2121">&#34;foo&#34;</span>: M{
     <span style="color:#ba2121">&#34;bar&#34;</span>: M{
       <span style="color:#ba2121">&#34;baz&#34;</span>: []M{
@@ -55,9 +45,7 @@
   },
   <span style="color:#ba2121">&#34;ok&#34;</span>: <span style="color:#008000;font-weight:bold">true</span>,
 }</code></pre></div>
-
 <p>如果不用别名，而是用 map[string]interface{}，就相当冗长了。</p>
-
 <p>虽然类型别名的初衷并不是简化代码，而是方便重构，但既然具备上面所述的几个优点，那就可以用。</p>
 </div>
   <div class="date">2019-08-04</div>

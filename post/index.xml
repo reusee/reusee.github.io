@@ -17,22 +17,14 @@
       <pubDate>Sat, 02 Nov 2019 00:00:00 +0000</pubDate>
       
       <guid>https://reusee.github.io/post/cps-state-machine/</guid>
-      <description>
-
-&lt;p&gt;go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。&lt;/p&gt;
-
+      <description>&lt;p&gt;go 可以定义直接递归的复合类型，也就是在类型的定义中，使用正在定义的类型名。&lt;/p&gt;
 &lt;p&gt;而函数是类型的一种，所以可以定义一个函数类型，它的返回值的类型是这个函数本身。&lt;/p&gt;
-
 &lt;p&gt;例如：
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() Proc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
 &lt;p&gt;上面这个类型，可以用来表示状态机中的一个状态，结合 CPS 手法，就可以实现一种协程。&lt;/p&gt;
-
 &lt;h3 id=&#34;计数状态机&#34;&gt;计数状态机&lt;/h3&gt;
-
 &lt;p&gt;一个例子，从1数到10：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
 
@@ -54,19 +46,14 @@
 		proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
 	}
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;上面的 main 函数中，for 语句如果换成&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
 	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
 	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()
 	proc = &lt;span style=&#34;color:#00f&#34;&gt;proc&lt;/span&gt;()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;则只会打印1到4，这个状态机的步进是可控的。&lt;/p&gt;
-
 &lt;p&gt;多个 Proc 也可以实现并发乱序执行：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
 	rand.&lt;span style=&#34;color:#00f&#34;&gt;Seed&lt;/span&gt;(&lt;span style=&#34;color:#008000&#34;&gt;int64&lt;/span&gt;(time.&lt;span style=&#34;color:#00f&#34;&gt;Now&lt;/span&gt;().&lt;span style=&#34;color:#00f&#34;&gt;UnixNano&lt;/span&gt;()))
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; procs []Proc
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt;; i &amp;lt; &lt;span style=&#34;color:#666&#34;&gt;128&lt;/span&gt;; i&lt;span style=&#34;color:#666&#34;&gt;++&lt;/span&gt; {
@@ -81,19 +68,13 @@
 		}
 	}
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如果需要更多状态，可以将状态放入 struct，然后定义 Proc 为该 struct 的方法，这样就能在 Proc 内读写状态。
-一个例子是：&lt;a href=&#34;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&#34;&gt;https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&lt;/a&gt;&lt;/p&gt;
-
+一个例子是：https://github.com/reusee/sb/blob/cdbe32270fd478df2d5e6b1a603c22497e70e8d6/marshal.go#L11&lt;/p&gt;
 &lt;h3 id=&#34;生成器&#34;&gt;生成器&lt;/h3&gt;
-
 &lt;p&gt;对 Proc 的类型稍作修改，可以实现一种生成器&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Proc &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, Proc)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;上面这个类型，可用于实现 int 序列的生成器。例如 fib 序列：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
 
@@ -123,13 +104,9 @@
 		fmt.&lt;span style=&#34;color:#00f&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%d\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#00f&#34;&gt;gen&lt;/span&gt;())
 	}
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;连续调用 gen，可以生成 fib 序列。&lt;/p&gt;
-
-&lt;p&gt;一个完整的生成器的例子是：&lt;a href=&#34;https://github.com/reusee/sb/blob/bbd151e5dcae0ab38515793de3f1133920dd7e74/marshal.go#L11&#34;&gt;https://github.com/reusee/sb/blob/bbd151e5dcae0ab38515793de3f1133920dd7e74/marshal.go#L11&lt;/a&gt;&lt;/p&gt;
-
+&lt;p&gt;一个完整的生成器的例子是：https://github.com/reusee/sb/blob/bbd151e5dcae0ab38515793de3f1133920dd7e74/marshal.go#L11&lt;/p&gt;
 &lt;h3 id=&#34;后记&#34;&gt;后记&lt;/h3&gt;
-
 &lt;p&gt;能实现这种写法，需要几个语言机制的配合。一是递归的类型定义，一是函数字面量，一是方法可以作为值传递。
 不是每门语言都有这些特性，尤其是递归类型定义，一些新出的语言也没有。
 所以并不是语言有很多 fancy 的东西，就是好。基础不牢，地动山摇。
@@ -143,25 +120,18 @@
       <pubDate>Wed, 07 Aug 2019 12:00:00 +0800</pubDate>
       
       <guid>https://reusee.github.io/post/lifetime-management/</guid>
-      <description>
-
-&lt;p&gt;&lt;a href=&#34;https://reusee.github.io/post/manage-byte-slices-manually/&#34; target=&#34;_blank&#34;&gt;上一篇文章&lt;/a&gt;
+      <description>&lt;p&gt;&lt;!-- raw HTML omitted --&gt;上一篇文章&lt;!-- raw HTML omitted --&gt;
 探讨了一种手工管理对象的方式。这种方式的难点在于确定生命期，在正确的时机执行回收。
 本文继续探讨生命期管理的可行手段。&lt;/p&gt;
-
 &lt;h3 id=&#34;最简单的场景&#34;&gt;最简单的场景&lt;/h3&gt;
-
 &lt;p&gt;最简单的场景是，生命期只有数个顺序语句，这种场景不需要特别的处理：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
 	buf &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;32&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1024&lt;/span&gt;)
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; buf.&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;()
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; io.&lt;span style=&#34;color:#00f&#34;&gt;CopyBuffer&lt;/span&gt;(dst, src, buf)
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如果生命期在大段代码的中间，可以用函数字面量的调用来构造一个函数体，并在其中调用defer：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (l &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Copy&lt;/span&gt;(dst io.Writer, src io.Reader) (l &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;, err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
 	&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
 		buf &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;getBytes&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;32&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;1024&lt;/span&gt;)
@@ -171,23 +141,17 @@
 	&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;h3 id=&#34;管理多个分配的对象&#34;&gt;管理多个分配的对象&lt;/h3&gt;
-
 &lt;p&gt;如果一段逻辑内有多个对象的分配，并且这段逻辑的边界可以明确划分，那多个对象的生命期可以统一成一个，逻辑结束后统一回收。&lt;/p&gt;
-
 &lt;p&gt;首先可以引入一个生命期类型：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Life &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Life &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   ended &lt;span style=&#34;color:#b00040&#34;&gt;int32&lt;/span&gt;
   sync.Mutex
   endOnce  sync.Once
   endFuncs []&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;它可以注册多个函数，在生命期结束时一一调用：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;OnEnd&lt;/span&gt;(fn &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;()) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;OnEnd&lt;/span&gt;(fn &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;()) {
 	l.&lt;span style=&#34;color:#00f&#34;&gt;Lock&lt;/span&gt;()
 	l.endFuncs = &lt;span style=&#34;color:#008000&#34;&gt;append&lt;/span&gt;(l.endFuncs, fn)
 	l.&lt;span style=&#34;color:#00f&#34;&gt;Unlock&lt;/span&gt;()
@@ -201,10 +165,8 @@
 		atomic.&lt;span style=&#34;color:#00f&#34;&gt;AddInt32&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;l.ended, &lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;)
 	})
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;使用例子：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Request &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Request &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   Life
 }
 
@@ -227,29 +189,19 @@
   sub2 &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; (&lt;span style=&#34;color:#666&#34;&gt;&amp;lt;-&lt;/span&gt;res)[&lt;span style=&#34;color:#666&#34;&gt;20&lt;/span&gt;:]
   &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ...
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如上例所示，bs 和 bs2 的生命期，就不是在一个函数体之内了，它们还会被 sub 和 sub2 引用。所以不能用简单的 defer 来实现回收。&lt;/p&gt;
-
 &lt;p&gt;这种场景，就没有必要一一考虑 sub、sub2 的生命期，只需要统一使用一个足够长的生命期，就可以了。&lt;/p&gt;
-
 &lt;p&gt;上例的做法是每个请求一个生命期，处理完请求就统一回收。&lt;/p&gt;
-
 &lt;h3 id=&#34;防止泄漏&#34;&gt;防止泄漏&lt;/h3&gt;
-
 &lt;p&gt;如果用 getBytes 获得的对象，忘记调用 Put，那这个对象就会泄漏到自动回收里。
 当然，这种泄漏对逻辑正确性是没有影响的，只不过没有起到减轻 GC 负担的作用而已。&lt;/p&gt;
-
 &lt;p&gt;要防范泄漏，首先是要检测出泄漏。
 将 runtime.MemProfileRate 设为 1，可以使 mem profiler 记录每一次分配，这样就能用 runtime.MemProfile 得到精确的分配信息。
 当然这样会稍微影响性能，所以只适用于开发期。&lt;/p&gt;
-
 &lt;p&gt;如果从分配信息里发现 getBytes 里的 make 处分配的内存(runtime.MemProfileRecord.AllocBytes)不断增加，那就说明有对象忘记调用 Put。&lt;/p&gt;
-
 &lt;p&gt;要找出未调用回收的对象，可以根据具体的业务特性，给对象设一个最大存活期，超过这个最大存活期而没有回收，就报错。&lt;/p&gt;
-
 &lt;p&gt;首先给 Life 类型增加 SetMax 方法：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;SetMax&lt;/span&gt;(d time.Duration) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (l &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life) &lt;span style=&#34;color:#00f&#34;&gt;SetMax&lt;/span&gt;(d time.Duration) {
 	stack &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; debug.&lt;span style=&#34;color:#00f&#34;&gt;Stack&lt;/span&gt;()
 	time.&lt;span style=&#34;color:#00f&#34;&gt;AfterFunc&lt;/span&gt;(d, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() {
 		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; atomic.&lt;span style=&#34;color:#00f&#34;&gt;LoadInt32&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;l.ended) &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;0&lt;/span&gt; {
@@ -258,10 +210,8 @@
 		}
 	})
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;然后给 Bytes 类型加上 Life：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Bytes &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Bytes &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
 	&lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Life
 	Bytes []&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;
 	class &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;
@@ -296,12 +246,9 @@
 	bytesPools[b.class].&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;(b.Bytes)
 	b.&lt;span style=&#34;color:#00f&#34;&gt;End&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;这样就可以在怀疑泄漏的 getBytes 后面再调用 SetMax，提示出未回收的地方。
 或者直接在 getBytes 里调用 SetMax，限制所有分配的对象的存活期。&lt;/p&gt;
-
 &lt;p&gt;当然，这个方法只适用于开发期，因为开销是比较大的。&lt;/p&gt;
-
 &lt;p&gt;上述是一种动态检测的方法，可能用静态的分析也能实现。但受限于本人能力，这方面就无法展开了。&lt;/p&gt;
 </description>
     </item>
@@ -312,27 +259,18 @@
       <pubDate>Wed, 07 Aug 2019 10:00:00 +0800</pubDate>
       
       <guid>https://reusee.github.io/post/manage-byte-slices-manually/</guid>
-      <description>
-
-&lt;p&gt;go 虽然支持自动管理内存，但如果可以确定对象的生命期，使用手工管理，可以减少一些 GC 的压力。
+      <description>&lt;p&gt;go 虽然支持自动管理内存，但如果可以确定对象的生命期，使用手工管理，可以减少一些 GC 的压力。
 本文探讨手工管理 []byte 的各个方面。&lt;/p&gt;
-
 &lt;h3 id=&#34;free-list&#34;&gt;free list&lt;/h3&gt;
-
 &lt;p&gt;首先需要一个 free list。可以自己实现，也可以用标准库的 sync.Pool。
 sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，所以是可以用的。&lt;/p&gt;
-
-&lt;p&gt;有一个提案对实现这类结构有益：&lt;a href=&#34;https://github.com/golang/proposal/blob/master/design/18802-percpu-sharded.md&#34; target=&#34;_blank&#34;&gt;Proposal: percpu.Sharded, an API for reducing cache contention&lt;/a&gt;，
+&lt;p&gt;有一个提案对实现这类结构有益：&lt;!-- raw HTML omitted --&gt;Proposal: percpu.Sharded, an API for reducing cache contention&lt;!-- raw HTML omitted --&gt;，
 不过还没有实现。简洁起见，本文就用 sync.Pool。&lt;/p&gt;
-
 &lt;h3 id=&#34;支持多个大小&#34;&gt;支持多个大小&lt;/h3&gt;
-
 &lt;p&gt;一个 sync.Pool 应当只支持特定大小的 []byte，所以应该有多个 sync.Pool。
 []byte 的大小可以分成多级，每一级对应一个 sync.Pool。&lt;/p&gt;
-
 &lt;p&gt;代码如下：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; bytesClasses, bytesPools = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; bytesClasses, bytesPools = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() (
 	classes []&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;,
 	pools []sync.Pool,
 ) {
@@ -347,17 +285,12 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 	}
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
 }()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;上面代码，初始化了大小从 128 到 65536 的多个 sync.Pool。
 对于大于 64K 的，直接分配而不做管理。大小的上下界可以根据具体场景做调整。&lt;/p&gt;
-
 &lt;h3 id=&#34;分配&#34;&gt;分配&lt;/h3&gt;
-
 &lt;p&gt;分配就是根据传入的大小，找到对应级别的 sync.Pool，用 Get 方法获得 []byte，将切片长度改成传入的大小，返回即可。&lt;/p&gt;
-
 &lt;p&gt;返回的是一个 Bytes 对象，使用时，就用它的 Bytes 字段。&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Bytes &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Bytes &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
 	Bytes []&lt;span style=&#34;color:#b00040&#34;&gt;byte&lt;/span&gt;
 	class &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;
 }
@@ -381,42 +314,30 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 		class: class,
 	}
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如果大小参数超出最大值，则返回一个用 make 分配的对象。
 这是用于兜底，保证正确性的。如果实际场景里触发了这个，那应该调整分配的最大值。&lt;/p&gt;
-
 &lt;h3 id=&#34;回收&#34;&gt;回收&lt;/h3&gt;
-
 &lt;p&gt;回收就是将 []byte 放回 sync.Pool。&lt;/p&gt;
-
 &lt;p&gt;如果级别是 -1，表示这是 make 分配的，不需要管理。&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (b Bytes) &lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;() {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (b Bytes) &lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;() {
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; b.class &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt; {
 		&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt;
 	}
 	bytesPools[b.class].&lt;span style=&#34;color:#00f&#34;&gt;Put&lt;/span&gt;(b.Bytes)
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;h3 id=&#34;正确性保证&#34;&gt;正确性保证&lt;/h3&gt;
-
 &lt;p&gt;手工管理对象的难点在于确定对象的生命期。
 如果回收过早，或者回收后扔有指针指向内部，就可能引发竞态。
 不像 rust，go 是没有语言机制保证这些方面的安全的。
 所以使用的时候要小心。&lt;/p&gt;
-
 &lt;p&gt;运行时提供的竞态检测器，对保证正确性有帮助。如果对象被错误回收，极有可能触发竞态告警。&lt;/p&gt;
-
 &lt;p&gt;可能静态代码分析，也可以实现类似 rust 的生命期分析。
 如果分析器不能推断一个手工分配的对象的使用是正确的，就报错，要求改动代码直到分析器可以推断。
 我不太熟悉这个方面，感觉是个值得研究的方向。&lt;/p&gt;
-
 &lt;p&gt;逃逸分析就类似生命期分析，编译器不能保证对象的生命期不大于栈帧的生命期，就只能分配到堆上。
 但对于堆上的对象的生命期，逃逸分析是不关心的。
 感觉这方面有优化的空间，如果某些堆对象也可以通过静态分析确定生命期，那 GC 的时候，是可以跳过的。&lt;/p&gt;
-
 &lt;p&gt;可以参考或者使用的：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;https://godoc.org/golang.org/x/tools/go/pointer&#34;&gt;https://godoc.org/golang.org/x/tools/go/pointer&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://godoc.org/golang.org/x/tools/go/ssa&#34;&gt;https://godoc.org/golang.org/x/tools/go/ssa&lt;/a&gt;&lt;/li&gt;
@@ -430,26 +351,20 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
       <pubDate>Sun, 04 Aug 2019 12:00:00 +0800</pubDate>
       
       <guid>https://reusee.github.io/post/error-handling-2/</guid>
-      <description>&lt;p&gt;几年前写过&lt;a href=&#34;https://reusee.github.io/post/error-handling/&#34; target=&#34;_blank&#34;&gt;一篇文章&lt;/a&gt;，讨论了一种处理错误的方式。
+      <description>&lt;p&gt;几年前写过&lt;!-- raw HTML omitted --&gt;一篇文章&lt;!-- raw HTML omitted --&gt;，讨论了一种处理错误的方式。
 近几年，在不需要压榨性能，或者不需要做覆盖测试的场景里，我都会用这种更简短的方式。&lt;/p&gt;
-
 &lt;p&gt;所以，对于 try 提案，我是支持的，因为用 try 可以替代 panic / recover 实现隐式的 return，在性能方面有优势。
 try 提案寿终正寝了，我是觉得可惜的。很多反对 try 提案的人，都不是出于技术性的原因，很多都是非理性的。
 当然，技术性的缺陷也是有的，但我认为还没有严重到，连试验都不做就要放弃的地步。&lt;/p&gt;
-
-&lt;p&gt;说回前一篇文章所讨论的方式，最近其实也有改进，单独做了一个包：&lt;a href=&#34;https://github.com/reusee/e&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/reusee/e&#34;&gt;https://github.com/reusee/e&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
-
+&lt;p&gt;说回前一篇文章所讨论的方式，最近其实也有改进，单独做了一个包：&lt;!-- raw HTML omitted --&gt;&lt;a href=&#34;https://github.com/reusee/e&#34;&gt;https://github.com/reusee/e&lt;/a&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
 &lt;p&gt;和以前的实现比较，有下述几个不同点：&lt;/p&gt;
-
 &lt;p&gt;首先，panic 抛出的，是经过包装的 thrownError 对象，而不是原先的 error 对象。
 这样做的好处是，可以准确判断 recover 返回的，是不是由错误处理的 panic 抛出的对象。
 以前的做法就比较粗放，很可能会将一些需要 panic 的对象，转化成了 error 返回值。&lt;/p&gt;
-
 &lt;p&gt;第二个不同是，error 类型可以有不同的实现。
 check 和 catch 函数不再是全局函数，而是由一个构造函数返回，而这个构造函数的参数，是一个包装错误的函数。
 构造函数的签名为&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;New&lt;/span&gt;(
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;New&lt;/span&gt;(
 	makeErr MakeErr,
 ) (
 	check &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;(err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;, args &lt;span style=&#34;color:#666&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}),
@@ -457,18 +372,13 @@ check 和 catch 函数不再是全局函数，而是由一个构造函数返回�
 ) {
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; MakeErr = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;, &lt;span style=&#34;color:#666&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}) &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;这种设计，比起之前使用固定的 Error 类型，要更灵活。
 因为不同的项目，使用的 Error 可能不同，应该允许项目自己实现 makeErr。&lt;/p&gt;
-
 &lt;p&gt;当然这个包也自带了一个 makeErr 的实现，支持错误链、文件和行号等等，
 也实现了标准库新加入的 Unwrap 方法，能使用 Is、As 等，足够好用了。&lt;/p&gt;
-
 &lt;p&gt;check 和 catch 的实现和前一篇文章的区别不大。&lt;/p&gt;
-
 &lt;p&gt;try 提案里的 CopyFile 函数，用这个包处理错误的话，是这样的&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;CopyFile&lt;/span&gt;(src, dst &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;) (err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;CopyFile&lt;/span&gt;(src, dst &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;) (err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;catch&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;err, &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;copy %s to %s&amp;#34;&lt;/span&gt;, src, dst)
 
   r, err &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; os.&lt;span style=&#34;color:#00f&#34;&gt;Open&lt;/span&gt;(src)
@@ -490,10 +400,8 @@ check 和 catch 函数不再是全局函数，而是由一个构造函数返回�
 
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如果 try 提案实现了的话，ce(err, &amp;ldquo;open %s&amp;rdquo;, src) 就可以写成 try(wrap(err, &amp;ldquo;open %s&amp;rdquo;))。
 wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
-
 &lt;p&gt;据说泛型实现之后，错误处理的方式也会重新考虑。
 结合泛型的话，估计还是走那种 monadic 的路数吧。
 但做成 rust 那样，我是不喜欢的。
@@ -509,29 +417,20 @@ wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
       
       <guid>https://reusee.github.io/post/empty-interface-aliasing/</guid>
       <description>&lt;p&gt;在 go 程序里，interface{} 是常用的类型。即使会加入泛型，它仍然有需要用到的地方，例如需要运行期反射的场景。&lt;/p&gt;
-
 &lt;p&gt;最近在新项目里我都会用到下面的别名定义&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; (
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; (
   any = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}
   dyn = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}
 )&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;any 表示任意类型，用于需要做 type assertion 的场景。
 例如容器类型，或者枚举类型。用泛型可以替代 any。&lt;/p&gt;
-
 &lt;p&gt;dyn 表示动态类型，用于需要做 reflect 的场景。
 这些场景是泛型不能替代的，例如动态调用、赋值等。&lt;/p&gt;
-
 &lt;p&gt;使用这些别名，一来比较简短，二来语义可以更清晰。&lt;/p&gt;
-
 &lt;p&gt;类型别名在另外一些场景，也可以起到简化代码的作用，例如&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; M = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;]any&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; M = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;]any&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;M 是 string 到 any 的映射，在写嵌套的结构的字面量时，可以让代码简洁一些&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; jsonData = M{
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;var&lt;/span&gt; jsonData = M{
   &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;foo&amp;#34;&lt;/span&gt;: M{
     &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;bar&amp;#34;&lt;/span&gt;: M{
       &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;baz&amp;#34;&lt;/span&gt;: []M{
@@ -543,9 +442,7 @@ wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
   },
   &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;ok&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;true&lt;/span&gt;,
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;如果不用别名，而是用 map[string]interface{}，就相当冗长了。&lt;/p&gt;
-
 &lt;p&gt;虽然类型别名的初衷并不是简化代码，而是方便重构，但既然具备上面所述的几个优点，那就可以用。&lt;/p&gt;
 </description>
     </item>
@@ -557,17 +454,12 @@ wrap 在 err 不为 nil 时才包装。&lt;/p&gt;
       
       <guid>https://reusee.github.io/post/escape_analysis/</guid>
       <description>&lt;p&gt;看到这篇博文： &lt;a href=&#34;http://www.zenlife.tk/go-allocated-on-heap-or-stack.md&#34;&gt;http://www.zenlife.tk/go-allocated-on-heap-or-stack.md&lt;/a&gt; ，于是想深入探究一下。&lt;/p&gt;
-
 &lt;p&gt;既然fmt.Println会使a、b逃逸，println不会，那就先从fmt.Println入手。&lt;/p&gt;
-
 &lt;p&gt;把fmt.Println的相关源码复制到同一个文件内，以让编译器给出具体的逃逸分析报告。
 就是src/fmt/print.go和src/fmt/format.go两个文件的内容。&lt;/p&gt;
-
 &lt;p&gt;用go tool compile -m生成报告，有几千行，分析之。&lt;/p&gt;
-
 &lt;p&gt;先找到定义a变量的那一行，然后往上看：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;a.go:1272: reflect.t·2 escapes to heap
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;a.go:1272: reflect.t·2 escapes to heap
 a.go:1265: leaking param content: a
 a.go:1265: leaking param content: p
 a.go:1265: leaking param content: p
@@ -587,11 +479,8 @@ a.go:268: os.Stdout escapes to heap
 a.go:267: leaking param content: a
 a.go:17: b escapes to heap
 a.go:15: moved to heap: a
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;从最下一句往上分析：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;a被移到堆上
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;从最下一句往上分析：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;a被移到堆上
 因为b逃逸到堆上
 Println的a参数（就是传入的b变量组成的[]interface{}）的内容泄漏
 这个泄漏不是指内存泄漏，而是指该传入参数的内容的生命期，超过函数调用期，也就是函数返回后，该参数的内容仍然存活
@@ -600,21 +489,13 @@ Fprintln的w、a参数都泄漏
 *pp.free的p参数（就是receiver）泄漏
 该receiver逃逸到heap
 ppFree逃逸到heap（这是个全局变量）
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。&lt;/p&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。&lt;/p&gt;
 &lt;p&gt;继续往上分析，然后居然发现这条：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;1272&lt;/span&gt;: reflect.t&lt;span style=&#34;&#34;&gt;·&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;2&lt;/span&gt; escapes to heap&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;1272&lt;/span&gt;: reflect.t&lt;span style=&#34;&#34;&gt;·&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;2&lt;/span&gt; escapes to heap&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;对应的代码是：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;isString &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; arg &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; reflect.&lt;span style=&#34;color:#00f&#34;&gt;TypeOf&lt;/span&gt;(arg).&lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;() &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; reflect.String&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;isString &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; arg &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; reflect.&lt;span style=&#34;color:#00f&#34;&gt;TypeOf&lt;/span&gt;(arg).&lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;() &lt;span style=&#34;color:#666&#34;&gt;==&lt;/span&gt; reflect.String&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;reflect&amp;#34;&lt;/span&gt;
 
@@ -622,17 +503,12 @@ ppFree逃逸到heap（这是个全局变量）
 	a &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt;{}{}
 	_ = reflect.&lt;span style=&#34;color:#00f&#34;&gt;TypeOf&lt;/span&gt;(a).&lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;于是再去看reflect.Type.Kind()的代码，是这样的：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (t &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;rtype) &lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;() Kind { &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;(t.kind &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt; kindMask) }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; (t &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;rtype) &lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;() Kind { &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;(t.kind &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt; kindMask) }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;于是问题变成，为什么reflect.TypeOf(arg).Kind()会导致arg逃逸。&lt;/p&gt;
-
 &lt;p&gt;按照前面的办法，复制reflect包的内容到文件里的话，会比较麻烦，因为有些函数是定义在runtime包里的。
 所以只要一些骨架，能重现就行：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;import&lt;/span&gt; (
 	&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;unsafe&amp;#34;&lt;/span&gt;
@@ -673,10 +549,8 @@ ppFree逃逸到heap（这是个全局变量）
 	a &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt;{}{}
 	_ = &lt;span style=&#34;color:#00f&#34;&gt;TypeOf&lt;/span&gt;(a).&lt;span style=&#34;color:#00f&#34;&gt;Kind&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;上面代码的go tool compile -m 结果是：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;20&lt;/span&gt;: can inline toType
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;20&lt;/span&gt;: can inline toType
 a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;15&lt;/span&gt;: can inline TypeOf
 a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;17&lt;/span&gt;: inlining call to toType
 a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;31&lt;/span&gt;: can &lt;span style=&#34;color:#00f&#34;&gt;inline&lt;/span&gt; (&lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;rtype).Kind
@@ -693,16 +567,11 @@ a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt
 a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;39&lt;/span&gt;: &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {} literal escapes to heap
 a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#666&#34;&gt;40&lt;/span&gt;: main &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;i does not escape
 &amp;lt;autogenerated&amp;gt;:&lt;span style=&#34;color:#666&#34;&gt;1&lt;/span&gt;: leaking param: .this&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;a在堆上分配了。&lt;/p&gt;
-
 &lt;p&gt;（分析一小时后……）&lt;/p&gt;
-
 &lt;p&gt;结论是，调用interface的方法会导致变量被移到堆上。将上面main里的改成 _ = TypeOf(a).(*rytpe).Kind()，a就不会逃逸了。&lt;/p&gt;
-
 &lt;p&gt;同理，下面的程序：&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; T &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
 	&lt;span style=&#34;color:#00f&#34;&gt;Foo&lt;/span&gt;()
@@ -716,10 +585,8 @@ a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt
 	s &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;new&lt;/span&gt;(S)
 	&lt;span style=&#34;color:#00f&#34;&gt;T&lt;/span&gt;(s).&lt;span style=&#34;color:#00f&#34;&gt;Foo&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;s会移到堆上。
 所以问题变成，为什么调用接口方法会使引用的变量被放到堆上。&lt;/p&gt;
-
 &lt;p&gt;在repo搜索了下，发现是个known issue： &lt;a href=&#34;https://github.com/golang/go/issues/7213&#34;&gt;https://github.com/golang/go/issues/7213&lt;/a&gt; ，而且缺少关爱。
 可能转到SSA后端后，会有更好的优化吧。
 所以现在想优化掉这个的话，只能避免使用接口方法了。&lt;/p&gt;
@@ -733,45 +600,33 @@ a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt
       
       <guid>https://reusee.github.io/post/error-handling/</guid>
       <description>&lt;p&gt;go处理错误常见的方式是&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;err &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;funcReturningError&lt;/span&gt;()
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;err &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;funcReturningError&lt;/span&gt;()
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; err &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
   &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// 处理错误
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;然而因为过于繁琐而饱受诟病。下文简述另一种处理错误的写法。&lt;/p&gt;
-
 &lt;p&gt;这种写法最初我是从标准库里看到的，代码在 &lt;a href=&#34;https://github.com/golang/go/blob/master/src/encoding/gob/error.go&#34;&gt;https://github.com/golang/go/blob/master/src/encoding/gob/error.go&lt;/a&gt; 。
 简言之，就是将错误用panic抛出，然后在某个边界用defer将其转为error值。这和其他用抛异常来处理错误的语言类似。
 不过上述代码并不十分通用，也没有解决最开始提出的写法繁琐的问题。
 受其启发，我现在用得最多的错误处理方式是这样的 &lt;a href=&#34;https://github.com/reusee/codes/blob/master/err/err.go&#34;&gt;https://github.com/reusee/codes/blob/master/err/err.go&lt;/a&gt; 。&lt;/p&gt;
-
 &lt;p&gt;首先是Err结构体，定义如下&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Err &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Err &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   Pkg, Info &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;
   Err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;Pkg用于标识抛出错误的包，Info是对错误的描述。Err用于包装另一个错误，一般是当前函数所调用的函数返回的，可以实现类似java的chained exception的机制，后面再细说。&lt;/p&gt;
-
 &lt;p&gt;另外有一个me函数（make error），用于包装error，实现很简单不提。&lt;/p&gt;
-
 &lt;p&gt;然后是ce函数（check error）&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;, info &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;, info &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;) {
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; err &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
     &lt;span style=&#34;color:#008000&#34;&gt;panic&lt;/span&gt;(&lt;span style=&#34;color:#00f&#34;&gt;me&lt;/span&gt;(err, info))
   }
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;这个函数检查err参数是否为nil，如果不是，则包装出一个Err结构，然后用panic抛出。
 这个就是用于替代if err != nil { &amp;hellip; }的了。&lt;/p&gt;
-
 &lt;p&gt;错误用panic抛出后，必须在某个边界recover，API不应该对外暴露panic，否则会和go社区整体的理念不合，自找烦恼。
 负责这个的是ct函数（catch error）&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ct&lt;/span&gt;(err &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ct&lt;/span&gt;(err &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; p &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000&#34;&gt;recover&lt;/span&gt;(); p &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
     &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; e, ok &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; p.(&lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;); ok {
       &lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;err = e
@@ -780,12 +635,9 @@ a.&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;go&lt;/span&gt;:&lt
     }
   }
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;因为用到了recover，所以ct只能在defer函数里调用。它首先recover()，然后看是否是error，是则将其赋值到传入的*error处，否则重新panic抛出&lt;/p&gt;
-
 &lt;p&gt;来看看它是如何减少代码的，以 &lt;a href=&#34;https://blog.golang.org/errors-are-values&#34;&gt;https://blog.golang.org/errors-are-values&lt;/a&gt; 的一段代码为例&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;_, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p0[a:b])
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;_, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p0[a:b])
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; err &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; err
 }
@@ -797,22 +649,17 @@ _, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p2[e:f])
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;if&lt;/span&gt; err &lt;span style=&#34;color:#666&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;nil&lt;/span&gt; {
   &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; err
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;用上述机制，可以写成&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ct&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;err)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ct&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;err)
 _, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p0[a:b])
 &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(err, &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;write p0&amp;#34;&lt;/span&gt;)
 _, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p1[c:d])
 &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(err, &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;write p1&amp;#34;&lt;/span&gt;)
 _, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p2[e:f])
 &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(err, &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;write p2&amp;#34;&lt;/span&gt;)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;代码没有那样繁琐了。&lt;/p&gt;
-
 &lt;p&gt;另外还有一个好处是，因为Err包装了上一个错误，所以定位错误比较容易。例如下面程序&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;package&lt;/span&gt; main
 
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;foo&lt;/span&gt;() (err &lt;span style=&#34;color:#b00040&#34;&gt;error&lt;/span&gt;) {
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;ct&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;err)
@@ -833,24 +680,18 @@ _, err = fd.&lt;span style=&#34;color:#00f&#34;&gt;Write&lt;/span&gt;(p2[e:f])
 &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
   &lt;span style=&#34;color:#00f&#34;&gt;ce&lt;/span&gt;(&lt;span style=&#34;color:#00f&#34;&gt;foo&lt;/span&gt;(), &lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;call foo&amp;#34;&lt;/span&gt;)
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;paniclog是这样的&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;panic: foobar: call bar
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;panic: foobar: call bar
 foobar: call baz
 foobar: baz
 ...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看出最外层的error包含了直到最内层的信息，包括包名foobar（这里只用到一个包所以体现不出），比起直接将最内层的error往上抛，要直观得多。&lt;/p&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可以看出最外层的error包含了直到最内层的信息，包括包名foobar（这里只用到一个包所以体现不出），比起直接将最内层的error往上抛，要直观得多。&lt;/p&gt;
 &lt;p&gt;最后说说这种写法的缺点。首先是不论有无错误都调用recover，调用recover又要使用defer函数，所以性能会受到影响。
 另外因为没有 if 语句了，做覆盖测试的话，区分不出两种case了。
 所以这种写法并不适合所有场景。需要压榨性能时不用，需要做覆盖测试时不用。
 适合的场景是对性能要求不高的，对正确性要求也不高的。
 我会用在经常变的应用代码，或者百几十行的小程序，或者测试代码里。
 基础的包，还是好好写 if err != nil { &amp;hellip; } 吧。&lt;/p&gt;
-
 &lt;p&gt;以上ct、me、ce等函数都不是public的，因为我使用时，是用代码生成工具复制出来用的，不需要public。
 用的代码生成工具是 &lt;a href=&#34;https://github.com/reusee/ccg&#34;&gt;https://github.com/reusee/ccg&lt;/a&gt; ，可能会有另外一篇博文说说这个。&lt;/p&gt;
 </description>
@@ -863,8 +704,7 @@ foobar: baz
       
       <guid>https://reusee.github.io/post/embedded/</guid>
       <description>&lt;p&gt;对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Foo &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Foo &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   sync.Mutex
   &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ... other fields
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;}
@@ -873,26 +713,19 @@ f &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;col
 f.&lt;span style=&#34;color:#00f&#34;&gt;Lock&lt;/span&gt;()
 &lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// ... operations
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;f.&lt;span style=&#34;color:#00f&#34;&gt;Unlock&lt;/span&gt;()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;Foo嵌入了sync.Mutex，所以可以在Foo结构上直接调用Lock和Unlock方法。
 但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。
 Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;condition &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; sync.&lt;span style=&#34;color:#00f&#34;&gt;NewCond&lt;/span&gt;(&lt;span style=&#34;color:#008000&#34;&gt;new&lt;/span&gt;(Foo))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;condition &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; sync.&lt;span style=&#34;color:#00f&#34;&gt;NewCond&lt;/span&gt;(&lt;span style=&#34;color:#008000&#34;&gt;new&lt;/span&gt;(Foo))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型，
 而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。&lt;/p&gt;
-
 &lt;p&gt;当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。
 例如这个接口&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
 	&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
 	&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 	&lt;span style=&#34;color:#00f&#34;&gt;GetName&lt;/span&gt;() &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;
 }
@@ -920,12 +753,9 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
 	f.NamedImpl = NamedImpl{f}
 	f.&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;给Named接口增加一个GetName方法。虽然感觉有点多余但也算可行。&lt;/p&gt;
-
 &lt;p&gt;其二，不增加接口方法，只传需要的数据的引用&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
 	&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }
 
@@ -948,10 +778,8 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
   f.NamedImpl = NamedImpl{&lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;f.Name}
   f.&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;其三，不使用引用，而是嵌入一个closure以获得所需数据&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Named &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt; {
 	&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }
 
@@ -972,10 +800,8 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
 	f.NamedImpl = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt; { &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; f.Name }
 	f.&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;以上例子中，其他类型要实现Named接口，可以不实现PrintName方法，而是嵌入一个NamedImpl。&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#00f&#34;&gt;main&lt;/span&gt;() {
 	b &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
 		NamedImpl
 		name &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;
@@ -984,7 +810,6 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
 	b.NamedImpl = &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() &lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt; { &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; b.name }
 	b.&lt;span style=&#34;color:#00f&#34;&gt;PrintName&lt;/span&gt;()
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;这就实现了代码的重用。&lt;/p&gt;
 </description>
     </item>
@@ -995,18 +820,12 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
       <pubDate>Mon, 12 May 2014 14:37:09 +0800</pubDate>
       
       <guid>https://reusee.github.io/post/object/</guid>
-      <description>
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/reusee/object&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/reusee/object&#34;&gt;https://github.com/reusee/object&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;这是开发&lt;a href=&#34;https://github.com/reusee/gotunnel-ng&#34; target=&#34;_blank&#34;&gt;gotunnel-ng&lt;/a&gt;时使用过的一种结构。
+      <description>&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;a href=&#34;https://github.com/reusee/object&#34;&gt;https://github.com/reusee/object&lt;/a&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;这是开发&lt;!-- raw HTML omitted --&gt;gotunnel-ng&lt;!-- raw HTML omitted --&gt;时使用过的一种结构。
 觉得比较通用，例如可以用在多线程gui库里，所以重新实现了下。简单介绍之。&lt;/p&gt;
-
 &lt;h3 id=&#34;0-基本结构&#34;&gt;0) 基本结构&lt;/h3&gt;
-
 &lt;p&gt;基本结构有两个，一个是Object，代表概念上的一个对象；另一个是Call，代表一次方法调用。类型声明如下&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Object &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;type&lt;/span&gt; Object &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
 	call    &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Call)
 	signals &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#b00040&#34;&gt;string&lt;/span&gt;][]&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}
 }
@@ -1021,15 +840,12 @@ Foo结构可以用于任何需要sync.Locker的地方，例如&lt;/p&gt;
 	arg      []&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}
 	ret      &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;h3 id=&#34;1-线程安全的状态读写&#34;&gt;1) 线程安全的状态读写&lt;/h3&gt;
-
-&lt;p&gt;Object的Call方法接受一个func()类型的参数，这个closure会被包装成Call结构，并送入Object的calls管道内。&lt;br /&gt;
-Object的主循环会读到这个Call，并在循环内执行此closure。&lt;br /&gt;
-所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。&lt;br /&gt;
+&lt;p&gt;Object的Call方法接受一个func()类型的参数，这个closure会被包装成Call结构，并送入Object的calls管道内。&lt;!-- raw HTML omitted --&gt;
+Object的主循环会读到这个Call，并在循环内执行此closure。&lt;!-- raw HTML omitted --&gt;
+所以在同一时间，Object只会处理一个Call，将状态读写操作包装进去，就能保证线程安全。&lt;!-- raw HTML omitted --&gt;
 并发计数器的例子&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;obj &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;obj &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
 	&lt;span style=&#34;color:#666&#34;&gt;*&lt;/span&gt;Object
 	i &lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;
 }{
@@ -1048,37 +864,28 @@ wg.&lt;span style=&#34;color:#00f&#34;&gt;Add&lt;/span&gt;(n)
 	}()
 }
 wg.&lt;span style=&#34;color:#00f&#34;&gt;Wait&lt;/span&gt;()&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;在多线程环境下，&lt;code&gt;obj.i++&lt;/code&gt;操作是不安全的。但Call方法能保证所有传入的closure在单一goroutine内顺序执行。所以上面的计数器能保证结果是512。&lt;/p&gt;
-
 &lt;p&gt;同样的效果，用锁也能实现，但Lock操作是阻塞的，实现不了下述的机制。&lt;/p&gt;
-
 &lt;h3 id=&#34;2-异步调用和future&#34;&gt;2) 异步调用和future&lt;/h3&gt;
-
-&lt;p&gt;Object的Call方法是异步的，也就是传入的closure不会立即执行，Call方法在将Call结构送入calls成员后返回。&lt;br /&gt;
+&lt;p&gt;Object的Call方法是异步的，也就是传入的closure不会立即执行，Call方法在将Call结构送入calls成员后返回。&lt;!-- raw HTML omitted --&gt;
 Call方法返回送出的Call结构，Call结构有一个Wait方法。
-调用该方法后，在closure执行完成之前会一直阻塞，也就是，Wait方法返回后，closure一定已经执行完成了。&lt;br /&gt;
+调用该方法后，在closure执行完成之前会一直阻塞，也就是，Wait方法返回后，closure一定已经执行完成了。&lt;!-- raw HTML omitted --&gt;
 Call结构还有个Get方法，可以获得closure的返回值（不支持多值）。Get方法会调用Wait方法。所以一个Call可以作为future使用&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// obj如上创建
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// obj如上创建
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;call &lt;span style=&#34;color:#666&#34;&gt;:=&lt;/span&gt; obj.&lt;span style=&#34;color:#00f&#34;&gt;Call&lt;/span&gt;(&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;() &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{} {
 	obj.i = &lt;span style=&#34;color:#666&#34;&gt;8&lt;/span&gt;
 	&lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;return&lt;/span&gt; obj.i
 })
 fmt.&lt;span style=&#34;color:#00f&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%d\n&amp;#34;&lt;/span&gt;, call.&lt;span style=&#34;color:#00f&#34;&gt;Get&lt;/span&gt;().(&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;))&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;返回值使用interface{}类型，是为了避免使用reflect。性能差异太大，所以作此取舍。&lt;/p&gt;
-
-&lt;h3 id=&#34;3-signal-slot机制&#34;&gt;3) Signal/Slot机制&lt;/h3&gt;
-
-&lt;p&gt;Object用Connect和Emit方法实现Signal/Slot机制。这是和GObject、Qt之类类似的。&lt;br /&gt;
-Emit可以带一个任意类型的参数。之前的实现使用了reflect，支持任意个，但reflect对性能影响不小，于是作此限定。&lt;br /&gt;
-Emit在Slot执行之前就返回，如果要等待Slot执行可以调用Emit返回的Call的Wait方法。&lt;br /&gt;
-同理，Connect支持的closure也是两种，不带参数的和带参数的，类型都是interface{}，需要type assertion后使用。&lt;br /&gt;
-closure返回一个bool值，为false时，closure只会执行一次。&lt;br /&gt;
+&lt;h3 id=&#34;3-signalslot机制&#34;&gt;3) Signal/Slot机制&lt;/h3&gt;
+&lt;p&gt;Object用Connect和Emit方法实现Signal/Slot机制。这是和GObject、Qt之类类似的。&lt;!-- raw HTML omitted --&gt;
+Emit可以带一个任意类型的参数。之前的实现使用了reflect，支持任意个，但reflect对性能影响不小，于是作此限定。&lt;!-- raw HTML omitted --&gt;
+Emit在Slot执行之前就返回，如果要等待Slot执行可以调用Emit返回的Call的Wait方法。&lt;!-- raw HTML omitted --&gt;
+同理，Connect支持的closure也是两种，不带参数的和带参数的，类型都是interface{}，需要type assertion后使用。&lt;!-- raw HTML omitted --&gt;
+closure返回一个bool值，为false时，closure只会执行一次。&lt;!-- raw HTML omitted --&gt;
 例子&lt;/p&gt;
-
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// obj如上创建
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;// obj如上创建
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;obj.i = &lt;span style=&#34;color:#666&#34;&gt;5&lt;/span&gt;
 obj.&lt;span style=&#34;color:#00f&#34;&gt;Connect&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;sig&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;func&lt;/span&gt;(i &lt;span style=&#34;color:#008000;font-weight:bold&#34;&gt;interface&lt;/span&gt;{}) &lt;span style=&#34;color:#b00040&#34;&gt;bool&lt;/span&gt; {
 	obj.i &lt;span style=&#34;color:#666&#34;&gt;+=&lt;/span&gt; i.(&lt;span style=&#34;color:#b00040&#34;&gt;int&lt;/span&gt;)
@@ -1090,25 +897,17 @@ obj.&lt;span style=&#34;color:#00f&#34;&gt;Connect&lt;/span&gt;(&lt;span style=&
 &lt;/span&gt;&lt;span style=&#34;color:#408080;font-style:italic&#34;&gt;&lt;/span&gt;})
 obj.&lt;span style=&#34;color:#00f&#34;&gt;Emit&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;sig&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#666&#34;&gt;5&lt;/span&gt;).&lt;span style=&#34;color:#00f&#34;&gt;Wait&lt;/span&gt;()
 fmt.&lt;span style=&#34;color:#00f&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#ba2121&#34;&gt;&amp;#34;%d\n&amp;#34;&lt;/span&gt;, obj.i)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 &lt;p&gt;输出为20&lt;/p&gt;
-
 &lt;h3 id=&#34;4-执行驱动&#34;&gt;4) 执行驱动&lt;/h3&gt;
-
 &lt;p&gt;Object的各种方法调用，都是靠goroutine来驱动。
 一个goroutine对应一个Object，这是默认的驱动的做法。
 除此之外还有一个goroutine对应n个Object的n:1驱动，和多个goroutine对应所有Object的n:m驱动。&lt;/p&gt;
-
 &lt;p&gt;因为一个goroutine的内存开销至少是2k，所以对象多时对内存和调度器都会产生压力。
 n:1和n:m驱动就是用于降低goroutine带来的开销的。但因为goroutine数量少于Object数量，所以调用多时可能对性能产生影响。
 总之就是时间换空间。&lt;/p&gt;
-
 &lt;p&gt;1:1驱动的性能最好，n:m次之，n:1再次之。但n:1的内存占用最小，n:m多一些，1:1最多。&lt;/p&gt;
-
 &lt;p&gt;64bit机器上，1G内存，1:1驱动可以跑12万个Object，n:m驱动在n为2048时能跑200万左右，n:1驱动在n为128时能跑320万左右。对象多时，goroutine的内存占比不高，n的影响不大。&lt;/p&gt;
-
 &lt;h3 id=&#34;5-调用性能&#34;&gt;5) 调用性能&lt;/h3&gt;
-
 &lt;p&gt;一次Call调用，需要创建Call结构，进出calls管道，执行closure，改变完成状态和广播，开销不小。
 在我机器上空closure的Benchmark的结果是，Call并Wait是840 ns/op左右，Call不Wait是560 ns/op左右。
 Emit调用的性能也在同一个数量级。&lt;/p&gt;

@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -21,17 +20,12 @@
 <div id="article">
   <div class="title">golang变量逃逸分析小探</div>
   <div class="content"><p>看到这篇博文： <a href="http://www.zenlife.tk/go-allocated-on-heap-or-stack.md">http://www.zenlife.tk/go-allocated-on-heap-or-stack.md</a> ，于是想深入探究一下。</p>
-
 <p>既然fmt.Println会使a、b逃逸，println不会，那就先从fmt.Println入手。</p>
-
 <p>把fmt.Println的相关源码复制到同一个文件内，以让编译器给出具体的逃逸分析报告。
 就是src/fmt/print.go和src/fmt/format.go两个文件的内容。</p>
-
 <p>用go tool compile -m生成报告，有几千行，分析之。</p>
-
 <p>先找到定义a变量的那一行，然后往上看：</p>
-
-<pre><code>a.go:1272: reflect.t·2 escapes to heap
+<pre tabindex="0"><code>a.go:1272: reflect.t·2 escapes to heap
 a.go:1265: leaking param content: a
 a.go:1265: leaking param content: p
 a.go:1265: leaking param content: p
@@ -51,11 +45,8 @@ a.go:268: os.Stdout escapes to heap
 a.go:267: leaking param content: a
 a.go:17: b escapes to heap
 a.go:15: moved to heap: a
-</code></pre>
-
-<p>从最下一句往上分析：</p>
-
-<pre><code>a被移到堆上
+</code></pre><p>从最下一句往上分析：</p>
+<pre tabindex="0"><code>a被移到堆上
 因为b逃逸到堆上
 Println的a参数（就是传入的b变量组成的[]interface{}）的内容泄漏
 这个泄漏不是指内存泄漏，而是指该传入参数的内容的生命期，超过函数调用期，也就是函数返回后，该参数的内容仍然存活
@@ -64,21 +55,13 @@ Fprintln的w、a参数都泄漏
 *pp.free的p参数（就是receiver）泄漏
 该receiver逃逸到heap
 ppFree逃逸到heap（这是个全局变量）
-</code></pre>
-
-<p>把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。</p>
-
+</code></pre><p>把ppFree.Put(p))这行注释掉（因为可能是它引用了最初传入的参数），然后重新go tool compile -m。仍然被移动到堆上。</p>
 <p>继续往上分析，然后居然发现这条：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">1272</span>: reflect.t<span style="">·</span><span style="color:#666">2</span> escapes to heap</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">1272</span>: reflect.t<span style="">·</span><span style="color:#666">2</span> escapes to heap</code></pre></div>
 <p>对应的代码是：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">isString <span style="color:#666">:=</span> arg <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> <span style="color:#666">&amp;&amp;</span> reflect.<span style="color:#00f">TypeOf</span>(arg).<span style="color:#00f">Kind</span>() <span style="color:#666">==</span> reflect.String</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">isString <span style="color:#666">:=</span> arg <span style="color:#666">!=</span> <span style="color:#008000;font-weight:bold">nil</span> <span style="color:#666">&amp;&amp;</span> reflect.<span style="color:#00f">TypeOf</span>(arg).<span style="color:#00f">Kind</span>() <span style="color:#666">==</span> reflect.String</code></pre></div>
 <p>reflect.TypeOf(arg).Kind()居然会导致arg逃逸到堆上。可以用下面的程序验证（TypeOf不会，程序略）：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
 <span style="color:#008000;font-weight:bold">import</span> <span style="color:#ba2121">&#34;reflect&#34;</span>
 
@@ -86,17 +69,12 @@ ppFree逃逸到heap（这是个全局变量）
 	a <span style="color:#666">:=</span> <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span>{}{}
 	_ = reflect.<span style="color:#00f">TypeOf</span>(a).<span style="color:#00f">Kind</span>()
 }</code></pre></div>
-
 <p>于是再去看reflect.Type.Kind()的代码，是这样的：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (t <span style="color:#666">*</span>rtype) <span style="color:#00f">Kind</span>() Kind { <span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">Kind</span>(t.kind <span style="color:#666">&amp;</span> kindMask) }</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (t <span style="color:#666">*</span>rtype) <span style="color:#00f">Kind</span>() Kind { <span style="color:#008000;font-weight:bold">return</span> <span style="color:#00f">Kind</span>(t.kind <span style="color:#666">&amp;</span> kindMask) }</code></pre></div>
 <p>于是问题变成，为什么reflect.TypeOf(arg).Kind()会导致arg逃逸。</p>
-
 <p>按照前面的办法，复制reflect包的内容到文件里的话，会比较麻烦，因为有些函数是定义在runtime包里的。
 所以只要一些骨架，能重现就行：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
 <span style="color:#008000;font-weight:bold">import</span> (
 	<span style="color:#ba2121">&#34;unsafe&#34;</span>
@@ -137,10 +115,8 @@ ppFree逃逸到heap（这是个全局变量）
 	a <span style="color:#666">:=</span> <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span>{}{}
 	_ = <span style="color:#00f">TypeOf</span>(a).<span style="color:#00f">Kind</span>()
 }</code></pre></div>
-
 <p>上面代码的go tool compile -m 结果是：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">20</span>: can inline toType
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">20</span>: can inline toType
 a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">15</span>: can inline TypeOf
 a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">17</span>: inlining call to toType
 a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">31</span>: can <span style="color:#00f">inline</span> (<span style="color:#666">*</span>rtype).Kind
@@ -157,16 +133,11 @@ a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666
 a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">39</span>: <span style="color:#666">&amp;</span><span style="color:#008000;font-weight:bold">struct</span> {} literal escapes to heap
 a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666">40</span>: main <span style="color:#666">&amp;</span>i does not escape
 &lt;autogenerated&gt;:<span style="color:#666">1</span>: leaking param: .this</code></pre></div>
-
 <p>a在堆上分配了。</p>
-
 <p>（分析一小时后……）</p>
-
 <p>结论是，调用interface的方法会导致变量被移到堆上。将上面main里的改成 _ = TypeOf(a).(*rytpe).Kind()，a就不会逃逸了。</p>
-
 <p>同理，下面的程序：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">package</span> main
 
 <span style="color:#008000;font-weight:bold">type</span> T <span style="color:#008000;font-weight:bold">interface</span> {
 	<span style="color:#00f">Foo</span>()
@@ -180,10 +151,8 @@ a.<span style="color:#008000;font-weight:bold">go</span>:<span style="color:#666
 	s <span style="color:#666">:=</span> <span style="color:#008000">new</span>(S)
 	<span style="color:#00f">T</span>(s).<span style="color:#00f">Foo</span>()
 }</code></pre></div>
-
 <p>s会移到堆上。
 所以问题变成，为什么调用接口方法会使引用的变量被放到堆上。</p>
-
 <p>在repo搜索了下，发现是个known issue： <a href="https://github.com/golang/go/issues/7213">https://github.com/golang/go/issues/7213</a> ，而且缺少关爱。
 可能转到SSA后端后，会有更好的优化吧。
 所以现在想优化掉这个的话，只能避免使用接口方法了。</p>

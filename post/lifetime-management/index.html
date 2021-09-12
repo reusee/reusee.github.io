@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -20,25 +19,18 @@
 
 <div id="article">
   <div class="title">生命期管理</div>
-  <div class="content">
-
-<p><a href="https://reusee.github.io/post/manage-byte-slices-manually/" target="_blank">上一篇文章</a>
+  <div class="content"><p><!-- raw HTML omitted -->上一篇文章<!-- raw HTML omitted -->
 探讨了一种手工管理对象的方式。这种方式的难点在于确定生命期，在正确的时机执行回收。
 本文继续探讨生命期管理的可行手段。</p>
-
 <h3 id="最简单的场景">最简单的场景</h3>
-
 <p>最简单的场景是，生命期只有数个顺序语句，这种场景不需要特别的处理：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">Copy</span>(dst io.Writer, src io.Reader) (<span style="color:#b00040">int</span>, <span style="color:#b00040">error</span>) {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">Copy</span>(dst io.Writer, src io.Reader) (<span style="color:#b00040">int</span>, <span style="color:#b00040">error</span>) {
 	buf <span style="color:#666">:=</span> <span style="color:#00f">getBytes</span>(<span style="color:#666">32</span> <span style="color:#666">*</span> <span style="color:#666">1024</span>)
 	<span style="color:#008000;font-weight:bold">defer</span> buf.<span style="color:#00f">Put</span>()
 	<span style="color:#008000;font-weight:bold">return</span> io.<span style="color:#00f">CopyBuffer</span>(dst, src, buf)
 }</code></pre></div>
-
 <p>如果生命期在大段代码的中间，可以用函数字面量的调用来构造一个函数体，并在其中调用defer：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">Copy</span>(dst io.Writer, src io.Reader) (l <span style="color:#b00040">int</span>, err <span style="color:#b00040">error</span>) {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">Copy</span>(dst io.Writer, src io.Reader) (l <span style="color:#b00040">int</span>, err <span style="color:#b00040">error</span>) {
 	<span style="color:#408080;font-style:italic">// ...
 </span><span style="color:#408080;font-style:italic"></span>	<span style="color:#008000;font-weight:bold">func</span>() {
 		buf <span style="color:#666">:=</span> <span style="color:#00f">getBytes</span>(<span style="color:#666">32</span> <span style="color:#666">*</span> <span style="color:#666">1024</span>)
@@ -48,23 +40,17 @@
 	<span style="color:#408080;font-style:italic">// ...
 </span><span style="color:#408080;font-style:italic"></span>	<span style="color:#008000;font-weight:bold">return</span>
 }</code></pre></div>
-
 <h3 id="管理多个分配的对象">管理多个分配的对象</h3>
-
 <p>如果一段逻辑内有多个对象的分配，并且这段逻辑的边界可以明确划分，那多个对象的生命期可以统一成一个，逻辑结束后统一回收。</p>
-
 <p>首先可以引入一个生命期类型：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Life <span style="color:#008000;font-weight:bold">struct</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Life <span style="color:#008000;font-weight:bold">struct</span> {
   ended <span style="color:#b00040">int32</span>
   sync.Mutex
   endOnce  sync.Once
   endFuncs []<span style="color:#008000;font-weight:bold">func</span>()
 }</code></pre></div>
-
 <p>它可以注册多个函数，在生命期结束时一一调用：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (l <span style="color:#666">*</span>Life) <span style="color:#00f">OnEnd</span>(fn <span style="color:#008000;font-weight:bold">func</span>()) {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (l <span style="color:#666">*</span>Life) <span style="color:#00f">OnEnd</span>(fn <span style="color:#008000;font-weight:bold">func</span>()) {
 	l.<span style="color:#00f">Lock</span>()
 	l.endFuncs = <span style="color:#008000">append</span>(l.endFuncs, fn)
 	l.<span style="color:#00f">Unlock</span>()
@@ -78,10 +64,8 @@
 		atomic.<span style="color:#00f">AddInt32</span>(<span style="color:#666">&amp;</span>l.ended, <span style="color:#666">1</span>)
 	})
 }</code></pre></div>
-
 <p>使用例子：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Request <span style="color:#008000;font-weight:bold">struct</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Request <span style="color:#008000;font-weight:bold">struct</span> {
   Life
 }
 
@@ -104,29 +88,19 @@
   sub2 <span style="color:#666">:=</span> (<span style="color:#666">&lt;-</span>res)[<span style="color:#666">20</span>:]
   <span style="color:#408080;font-style:italic">// ...
 </span><span style="color:#408080;font-style:italic"></span>}</code></pre></div>
-
 <p>如上例所示，bs 和 bs2 的生命期，就不是在一个函数体之内了，它们还会被 sub 和 sub2 引用。所以不能用简单的 defer 来实现回收。</p>
-
 <p>这种场景，就没有必要一一考虑 sub、sub2 的生命期，只需要统一使用一个足够长的生命期，就可以了。</p>
-
 <p>上例的做法是每个请求一个生命期，处理完请求就统一回收。</p>
-
 <h3 id="防止泄漏">防止泄漏</h3>
-
 <p>如果用 getBytes 获得的对象，忘记调用 Put，那这个对象就会泄漏到自动回收里。
 当然，这种泄漏对逻辑正确性是没有影响的，只不过没有起到减轻 GC 负担的作用而已。</p>
-
 <p>要防范泄漏，首先是要检测出泄漏。
 将 runtime.MemProfileRate 设为 1，可以使 mem profiler 记录每一次分配，这样就能用 runtime.MemProfile 得到精确的分配信息。
 当然这样会稍微影响性能，所以只适用于开发期。</p>
-
 <p>如果从分配信息里发现 getBytes 里的 make 处分配的内存(runtime.MemProfileRecord.AllocBytes)不断增加，那就说明有对象忘记调用 Put。</p>
-
 <p>要找出未调用回收的对象，可以根据具体的业务特性，给对象设一个最大存活期，超过这个最大存活期而没有回收，就报错。</p>
-
 <p>首先给 Life 类型增加 SetMax 方法：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (l <span style="color:#666">*</span>Life) <span style="color:#00f">SetMax</span>(d time.Duration) {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (l <span style="color:#666">*</span>Life) <span style="color:#00f">SetMax</span>(d time.Duration) {
 	stack <span style="color:#666">:=</span> debug.<span style="color:#00f">Stack</span>()
 	time.<span style="color:#00f">AfterFunc</span>(d, <span style="color:#008000;font-weight:bold">func</span>() {
 		<span style="color:#008000;font-weight:bold">if</span> atomic.<span style="color:#00f">LoadInt32</span>(<span style="color:#666">&amp;</span>l.ended) <span style="color:#666">==</span> <span style="color:#666">0</span> {
@@ -135,10 +109,8 @@
 		}
 	})
 }</code></pre></div>
-
 <p>然后给 Bytes 类型加上 Life：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Bytes <span style="color:#008000;font-weight:bold">struct</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Bytes <span style="color:#008000;font-weight:bold">struct</span> {
 	<span style="color:#666">*</span>Life
 	Bytes []<span style="color:#b00040">byte</span>
 	class <span style="color:#b00040">int</span>
@@ -173,12 +145,9 @@
 	bytesPools[b.class].<span style="color:#00f">Put</span>(b.Bytes)
 	b.<span style="color:#00f">End</span>()
 }</code></pre></div>
-
 <p>这样就可以在怀疑泄漏的 getBytes 后面再调用 SetMax，提示出未回收的地方。
 或者直接在 getBytes 里调用 SetMax，限制所有分配的对象的存活期。</p>
-
 <p>当然，这个方法只适用于开发期，因为开销是比较大的。</p>
-
 <p>上述是一种动态检测的方法，可能用静态的分析也能实现。但受限于本人能力，这方面就无法展开了。</p>
 </div>
   <div class="date">2019-08-07</div>

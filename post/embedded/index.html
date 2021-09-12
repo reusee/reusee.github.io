@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -21,8 +20,7 @@
 <div id="article">
   <div class="title">用嵌入字段实现代码重用</div>
   <div class="content"><p>对数据结构加锁机制的常用方式，是嵌入一个sync.Mutex或sync.RWMutex。</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Foo <span style="color:#008000;font-weight:bold">struct</span> {
   sync.Mutex
   <span style="color:#408080;font-style:italic">// ... other fields
 </span><span style="color:#408080;font-style:italic"></span>}
@@ -31,26 +29,19 @@ f <span style="color:#666">:=</span> <span style="color:#008000">new</span>(Foo)
 f.<span style="color:#00f">Lock</span>()
 <span style="color:#408080;font-style:italic">// ... operations
 </span><span style="color:#408080;font-style:italic"></span>f.<span style="color:#00f">Unlock</span>()</code></pre></div>
-
 <p>Foo嵌入了sync.Mutex，所以可以在Foo结构上直接调用Lock和Unlock方法。
 但这不是个仅限于此的语法糖，Foo实际已经实现了sync.Locker接口，就好像是Foo自己定义了Lock和Unlock方法一样。
 Foo结构可以用于任何需要sync.Locker的地方，例如</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">condition <span style="color:#666">:=</span> sync.<span style="color:#00f">NewCond</span>(<span style="color:#008000">new</span>(Foo))</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">condition <span style="color:#666">:=</span> sync.<span style="color:#00f">NewCond</span>(<span style="color:#008000">new</span>(Foo))</code></pre></div>
 <p>这就类似于接口的默认实现(default implementation)。实现接口时，只需要嵌入一个实现了此接口的类型，
 而不需要重新实现一遍方法，或者使用命名字段再包装出接口所需的方法。</p>
-
 <p>当然这个和真正的默认实现机制是有区别的，方法里如果需要引用被嵌入的类型的字段，须要在构造嵌入字段时显式传入。
 例如这个接口</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
 	<span style="color:#00f">PrintName</span>()
 }</code></pre></div>
-
 <p>要提供一个Named接口的可以嵌入的实现NamedImpl，可以有以下的方法。其一</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
 	<span style="color:#00f">PrintName</span>()
 	<span style="color:#00f">GetName</span>() <span style="color:#b00040">string</span>
 }
@@ -78,12 +69,9 @@ Foo结构可以用于任何需要sync.Locker的地方，例如</p>
 	f.NamedImpl = NamedImpl{f}
 	f.<span style="color:#00f">PrintName</span>()
 }</code></pre></div>
-
 <p>给Named接口增加一个GetName方法。虽然感觉有点多余但也算可行。</p>
-
 <p>其二，不增加接口方法，只传需要的数据的引用</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
 	<span style="color:#00f">PrintName</span>()
 }
 
@@ -106,10 +94,8 @@ Foo结构可以用于任何需要sync.Locker的地方，例如</p>
   f.NamedImpl = NamedImpl{<span style="color:#666">&amp;</span>f.Name}
   f.<span style="color:#00f">PrintName</span>()
 }</code></pre></div>
-
 <p>其三，不使用引用，而是嵌入一个closure以获得所需数据</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Named <span style="color:#008000;font-weight:bold">interface</span> {
 	<span style="color:#00f">PrintName</span>()
 }
 
@@ -130,10 +116,8 @@ Foo结构可以用于任何需要sync.Locker的地方，例如</p>
 	f.NamedImpl = <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">string</span> { <span style="color:#008000;font-weight:bold">return</span> f.Name }
 	f.<span style="color:#00f">PrintName</span>()
 }</code></pre></div>
-
 <p>以上例子中，其他类型要实现Named接口，可以不实现PrintName方法，而是嵌入一个NamedImpl。</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> <span style="color:#00f">main</span>() {
 	b <span style="color:#666">:=</span> <span style="color:#008000;font-weight:bold">struct</span> {
 		NamedImpl
 		name <span style="color:#b00040">string</span>
@@ -142,7 +126,6 @@ Foo结构可以用于任何需要sync.Locker的地方，例如</p>
 	b.NamedImpl = <span style="color:#008000;font-weight:bold">func</span>() <span style="color:#b00040">string</span> { <span style="color:#008000;font-weight:bold">return</span> b.name }
 	b.<span style="color:#00f">PrintName</span>()
 }</code></pre></div>
-
 <p>这就实现了代码的重用。</p>
 </div>
   <div class="date">2014-08-28</div>

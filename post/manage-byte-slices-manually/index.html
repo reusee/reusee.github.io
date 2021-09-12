@@ -12,7 +12,6 @@
       <ul class="links">
         <li><a href="/">首页</a></li>
         <li><a href="https://github.com/reusee" target="_blank">Github</a></li>
-        <li><a href="https://twitter.com/reusee" target="_blank">Twitter</a></li>
       </div>
     </div>
 
@@ -20,27 +19,18 @@
 
 <div id="article">
   <div class="title">手工分配和回收 []byte</div>
-  <div class="content">
-
-<p>go 虽然支持自动管理内存，但如果可以确定对象的生命期，使用手工管理，可以减少一些 GC 的压力。
+  <div class="content"><p>go 虽然支持自动管理内存，但如果可以确定对象的生命期，使用手工管理，可以减少一些 GC 的压力。
 本文探讨手工管理 []byte 的各个方面。</p>
-
 <h3 id="free-list">free list</h3>
-
 <p>首先需要一个 free list。可以自己实现，也可以用标准库的 sync.Pool。
 sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，所以是可以用的。</p>
-
-<p>有一个提案对实现这类结构有益：<a href="https://github.com/golang/proposal/blob/master/design/18802-percpu-sharded.md" target="_blank">Proposal: percpu.Sharded, an API for reducing cache contention</a>，
+<p>有一个提案对实现这类结构有益：<!-- raw HTML omitted -->Proposal: percpu.Sharded, an API for reducing cache contention<!-- raw HTML omitted -->，
 不过还没有实现。简洁起见，本文就用 sync.Pool。</p>
-
 <h3 id="支持多个大小">支持多个大小</h3>
-
 <p>一个 sync.Pool 应当只支持特定大小的 []byte，所以应该有多个 sync.Pool。
 []byte 的大小可以分成多级，每一级对应一个 sync.Pool。</p>
-
 <p>代码如下：</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">var</span> bytesClasses, bytesPools = <span style="color:#008000;font-weight:bold">func</span>() (
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">var</span> bytesClasses, bytesPools = <span style="color:#008000;font-weight:bold">func</span>() (
 	classes []<span style="color:#b00040">int</span>,
 	pools []sync.Pool,
 ) {
@@ -55,17 +45,12 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 	}
 	<span style="color:#008000;font-weight:bold">return</span>
 }()</code></pre></div>
-
 <p>上面代码，初始化了大小从 128 到 65536 的多个 sync.Pool。
 对于大于 64K 的，直接分配而不做管理。大小的上下界可以根据具体场景做调整。</p>
-
 <h3 id="分配">分配</h3>
-
 <p>分配就是根据传入的大小，找到对应级别的 sync.Pool，用 Get 方法获得 []byte，将切片长度改成传入的大小，返回即可。</p>
-
 <p>返回的是一个 Bytes 对象，使用时，就用它的 Bytes 字段。</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Bytes <span style="color:#008000;font-weight:bold">struct</span> {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">type</span> Bytes <span style="color:#008000;font-weight:bold">struct</span> {
 	Bytes []<span style="color:#b00040">byte</span>
 	class <span style="color:#b00040">int</span>
 }
@@ -89,42 +74,30 @@ sync.Pool 在 1.13 版本有一个改进，不会在每次 GC 时都清空了，
 		class: class,
 	}
 }</code></pre></div>
-
 <p>如果大小参数超出最大值，则返回一个用 make 分配的对象。
 这是用于兜底，保证正确性的。如果实际场景里触发了这个，那应该调整分配的最大值。</p>
-
 <h3 id="回收">回收</h3>
-
 <p>回收就是将 []byte 放回 sync.Pool。</p>
-
 <p>如果级别是 -1，表示这是 make 分配的，不需要管理。</p>
-
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (b Bytes) <span style="color:#00f">Put</span>() {
+<div class="highlight"><pre tabindex="0" style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#008000;font-weight:bold">func</span> (b Bytes) <span style="color:#00f">Put</span>() {
 	<span style="color:#008000;font-weight:bold">if</span> b.class <span style="color:#666">==</span> <span style="color:#666">-</span><span style="color:#666">1</span> {
 		<span style="color:#008000;font-weight:bold">return</span>
 	}
 	bytesPools[b.class].<span style="color:#00f">Put</span>(b.Bytes)
 }</code></pre></div>
-
 <h3 id="正确性保证">正确性保证</h3>
-
 <p>手工管理对象的难点在于确定对象的生命期。
 如果回收过早，或者回收后扔有指针指向内部，就可能引发竞态。
 不像 rust，go 是没有语言机制保证这些方面的安全的。
 所以使用的时候要小心。</p>
-
 <p>运行时提供的竞态检测器，对保证正确性有帮助。如果对象被错误回收，极有可能触发竞态告警。</p>
-
 <p>可能静态代码分析，也可以实现类似 rust 的生命期分析。
 如果分析器不能推断一个手工分配的对象的使用是正确的，就报错，要求改动代码直到分析器可以推断。
 我不太熟悉这个方面，感觉是个值得研究的方向。</p>
-
 <p>逃逸分析就类似生命期分析，编译器不能保证对象的生命期不大于栈帧的生命期，就只能分配到堆上。
 但对于堆上的对象的生命期，逃逸分析是不关心的。
 感觉这方面有优化的空间，如果某些堆对象也可以通过静态分析确定生命期，那 GC 的时候，是可以跳过的。</p>
-
 <p>可以参考或者使用的：</p>
-
 <ul>
 <li><a href="https://godoc.org/golang.org/x/tools/go/pointer">https://godoc.org/golang.org/x/tools/go/pointer</a></li>
 <li><a href="https://godoc.org/golang.org/x/tools/go/ssa">https://godoc.org/golang.org/x/tools/go/ssa</a></li>
